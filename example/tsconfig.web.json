@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "outDir": "public",
+    "rootDir": "src",
+    "types": ["node"]
+  },
+  "include": ["src/app.tsx"],
+  "exclude": ["node_modules"]
+}

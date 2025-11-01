@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs';
 // @ts-ignore - served by Express at runtime
 import { Plot2D, Axes2D, Arc, Circle, Label, Line, Function2D, Point2D, Scatter2D, Ray2D, Vector2D, Polyline2D, Bezier2D, Area2D, RiemannSum, TangentLine, NormalLine, AngleMarker, DistanceMarker, VectorField2D, Heatmap2D, Contour2D, PolarFunction2D, Crosshair2D, Legend2D, Title2D, Plot3D, Axes3D, Grid3D, Box3D, Sphere3D, Label3D, Legend3D, Torus3D, Cylinder3D, Cone3D, Surface3D, ParametricSurface3D, Scatter3D } from '/lib/index.js';
+import { AutoSizer } from './Responsive.js';
 
 const App: React.FC = () => {
   // Ángulo para la circunferencia unitaria
@@ -23,9 +24,11 @@ const App: React.FC = () => {
       {/* 1) Circunferencia unitaria (no draggable) */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">¿De dónde viene el seno? Circunferencia unitaria</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot2D width={420} height={420} xRange={[-1.4, 1.4]} yRange={[-1.4, 1.4]} pannable={false}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={1}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-1.4, 1.4]} yRange={[-1.4, 1.4]} pannable={false} zoomable={false}>
               <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} gridXDelta={0.5} gridYDelta={0.5}
                 renderXLabel={(x:number)=>null} renderYLabel={(y:number)=>null} />
               {/* Circunferencia unitaria */}
@@ -53,6 +56,8 @@ const App: React.FC = () => {
                 <span dangerouslySetInnerHTML={{__html: katex.renderToString('\\theta')}} />
               </Label>
             </Plot2D>
+              )}
+            </AutoSizer>
             <div className="mt-3 flex items-center gap-3">
               <input className="w-72 accent-blue-600" type="range" min={-2*Math.PI} max={2*Math.PI} step={0.01} value={theta} onChange={e=>setTheta(parseFloat(e.target.value))} />
               <span className="text-sm text-gray-600 leading-6" style={{whiteSpace:'nowrap'}}
@@ -62,7 +67,7 @@ const App: React.FC = () => {
               />
             </div>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <div dangerouslySetInnerHTML={{__html: katex.renderToString('\\text{En la circunferencia unitaria, } x=\\cos(\\theta),\\ y=\\sin(\\theta).',{throwOnError:false})}} />
             <p className="mt-2">Mueve el deslizador para variar el ángulo y ver cómo cambian las coordenadas del punto sobre la circunferencia.</p>
           </div>
@@ -72,9 +77,11 @@ const App: React.FC = () => {
       {/* 2) Funciones y cálculo: f(x), tangente, normal, área y Riemann */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Funciones y cálculo</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot2D width={420} height={300} xRange={[-3.5, 3.5]} yRange={[-2, 2]} pannable={true}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-3.5, 3.5]} yRange={[-2, 2]} pannable={true}>
               <Title2D offsetY={0}>Funciones y cálculo</Title2D>
               <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
               <Function2D f={f} xRange={[-10,10]} stroke="#2563eb" strokeWidth={2} />
@@ -91,6 +98,8 @@ const App: React.FC = () => {
               ]} position="top-right" />
               <Crosshair2D />
             </Plot2D>
+              )}
+            </AutoSizer>
             <div className="mt-3 flex flex-wrap items-center gap-4">
               <label className="text-sm text-gray-700 flex items-center gap-2">x₀
                 <input className="w-56 accent-blue-600" type="range" min={-3.5} max={3.5} step={0.01} value={x0} onChange={e=>setX0(parseFloat(e.target.value))} />
@@ -101,7 +110,7 @@ const App: React.FC = () => {
               <span className="text-sm text-gray-600 leading-6" dangerouslySetInnerHTML={{__html:katex.renderToString(`x_0=${x0.toFixed(2)},\\ f(x_0)=${f(x0).toFixed(3)},\\ n=${nRects}`)}} />
             </div>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Ejemplo con y = sin(x): curva, rectángulos de Riemann, área entre −π/2 y π/2, y rectas tangente (roja) y normal (verde) en x₀.</p>
           </div>
         </div>
@@ -110,15 +119,17 @@ const App: React.FC = () => {
       {/* 3) Scatter2D y marcador personalizado */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Scatter2D y marcadores</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
             {(() => {
               const pts = Array.from({length: 25}, (_,i)=>{
                 const x = -2 + 4*(i/24);
                 return [x, Math.sin(2*x)*0.8] as [number,number];
               });
               return (
-                <Plot2D width={420} height={300} xRange={[-2.2,2.2]} yRange={[-1.6,1.6]} pannable={true}>
+                <AutoSizer aspect={0.714}>
+                  {(w,h)=> (
+                <Plot2D width={w} height={h} xRange={[-2.2,2.2]} yRange={[-1.6,1.6]} pannable={true}>
                   <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
                   <Function2D f={(x)=>Math.sin(2*x)*0.8} xRange={[-10,10]} stroke="#64748b" strokeDasharray="4 4" />
                   {/* Marcadores por defecto (círculo) */}
@@ -129,10 +140,12 @@ const App: React.FC = () => {
                   )} />
                   <Crosshair2D showLabels={false} />
                 </Plot2D>
+                  )}
+                </AutoSizer>
               );
             })()}
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Por defecto los puntos son círculos. También puedes pasar un renderizador personalizado para dibujar cualquier SVG en cada punto (aquí, rombos verdes).</p>
           </div>
         </div>
@@ -141,9 +154,11 @@ const App: React.FC = () => {
       {/* 4) Vectores, rayos, polilíneas y Bézier */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Vectores, rayos, polilíneas y Bézier</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot2D width={420} height={300} xRange={[-2.5,2.5]} yRange={[-2,2]} pannable={true}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-2.5,2.5]} yRange={[-2,2]} pannable={true}>
               <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
               <Vector2D x1={0} y1={0} x2={1.4} y2={1} stroke="#ef4444" fillHead="#ef4444" />
               <Ray2D from={[-2,-1]} through={[0.5,0.2]} stroke="#2563eb" strokeDasharray="6 4" />
@@ -151,8 +166,10 @@ const App: React.FC = () => {
               <Bezier2D kind="quadratic" p0={[-2,-1]} p1={[-0.5,1.2]} p2={[1.5,-0.6]} stroke="#10b981" />
               <Bezier2D kind="cubic" p0={[-1.5,-0.5]} p1={[-1,1.2]} p2={[0.8,1.2]} p3={[1.8,-0.2]} stroke="#a855f7" />
             </Plot2D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Demostración de un vector con flecha, un rayo recortado al viewport, una polilínea y curvas de Bézier cuadrática y cúbica.</p>
           </div>
         </div>
@@ -161,9 +178,11 @@ const App: React.FC = () => {
       {/* 5) Marcadores: ángulo y distancia */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Marcadores geométricos</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot2D width={420} height={300} xRange={[-2,2]} yRange={[-1.5,1.5]} pannable={true}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-2,2]} yRange={[-1.5,1.5]} pannable={true}>
               <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
               <AngleMarker center={[0,0]} a={[1,0]} b={[0.5,1]} r={0.5} stroke="#f59e0b" strokeWidth={2} fill="#f59e0b" />
               <Line x1={0} y1={0} x2={1} y2={0} stroke="#f59e0b" />
@@ -171,8 +190,10 @@ const App: React.FC = () => {
               <DistanceMarker x1={-1} y1={-1} x2={1} y2={-1} tickSize={10} stroke="#0ea5e9" strokeWidth={2}
                 label={<span dangerouslySetInnerHTML={{__html:katex.renderToString('d')}} />} labelOffsetPx={14} />
             </Plot2D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Ángulo entre dos radios desde el origen y un medidor de distancia con marcas finales y etiqueta.</p>
           </div>
         </div>
@@ -181,14 +202,18 @@ const App: React.FC = () => {
       {/* 6) Avanzados: Campo vectorial */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Campo vectorial</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot2D width={420} height={300} xRange={[-3,3]} yRange={[-3,3]} pannable={true}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-3,3]} yRange={[-3,3]} pannable={true}>
               <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
               <VectorField2D v={(x:number,y:number)=>({vx:-y, vy:x})} countX={17} countY={13} normalize={true} color="#374151" mode="world" origin={[0,0]} />
             </Plot2D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Campo rotacional v(x,y)=(-y, x) muestreado en una grilla y normalizado para una longitud uniforme.</p>
           </div>
         </div>
@@ -197,9 +222,11 @@ const App: React.FC = () => {
       {/* 7) Avanzados: Heatmap y Contornos */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Heatmap y Contornos</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot2D width={420} height={300} xRange={[-3.5,3.5]} yRange={[-2.5,2.5]} pannable={true}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-3.5,3.5]} yRange={[-2.5,2.5]} pannable={true}>
               <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
               {(() => {
                 const g = (x:number,y:number)=> Math.sin(x)*Math.cos(y) + 0.2*Math.cos(2*x+1.5*y);
@@ -213,8 +240,10 @@ const App: React.FC = () => {
                 );
               })()}
             </Plot2D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Mapa de calor de f(x,y)=sin(x)cos(y)+0.2cos(2x+1.5y), con curvas de nivel superpuestas.</p>
           </div>
         </div>
@@ -223,14 +252,18 @@ const App: React.FC = () => {
       {/* 8) Avanzados: Función polar */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Curva polar</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot2D width={420} height={300} xRange={[-2.2,2.2]} yRange={[-2.2,2.2]} pannable={true}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-2.2,2.2]} yRange={[-2.2,2.2]} pannable={true}>
               <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} renderXLabel={()=>null} renderYLabel={()=>null} />
               <PolarFunction2D r={(t:number)=> 1 + 0.4*Math.cos(5*t)} thetaRange={[0, 2*Math.PI]} stroke="#dc2626" />
             </Plot2D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Ejemplo polar r(θ)=1+0.4cos(5θ) convertido a coordenadas XY con un envolvente suave.</p>
           </div>
         </div>
@@ -239,9 +272,11 @@ const App: React.FC = () => {
       {/* 9) Sin ejes 2D */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Ejemplos sin ejes</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0 space-y-4">
-            <Plot2D width={420} height={220} xRange={[-3.5, 3.5]} yRange={[-2, 2]} pannable={true}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full space-y-4">
+            <AutoSizer aspect={0.524}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-3.5, 3.5]} yRange={[-2, 2]} pannable={true}>
               <Title2D offsetY={0}><span dangerouslySetInnerHTML={{__html: katex.renderToString('f(x)=\\sin(x)')}} /></Title2D>
               <Function2D f={f} xRange={[-10,10]} stroke="#2563eb" strokeWidth={2} />
               <Area2D f={f} a={-Math.PI/2} b={Math.PI/2} fill="rgba(37,99,235,0.15)" stroke="#2563eb" />
@@ -249,6 +284,8 @@ const App: React.FC = () => {
               <NormalLine f={f} x0={x0} color="#10b981" />
               <Point2D x={x0} y={f(x0)} r={3} fill="#ef4444" />
             </Plot2D>
+              )}
+            </AutoSizer>
 
             {(() => {
               const pts = Array.from({length: 25}, (_,i)=>{
@@ -256,7 +293,9 @@ const App: React.FC = () => {
                 return [x, Math.sin(2*x)*0.8] as [number,number];
               });
               return (
-                <Plot2D width={420} height={220} xRange={[-2.2,2.2]} yRange={[-1.6,1.6]} pannable={true}>
+                <AutoSizer aspect={0.524}>
+                  {(w,h)=> (
+                <Plot2D width={w} height={h} xRange={[-2.2,2.2]} yRange={[-1.6,1.6]} pannable={true}>
                   <Title2D offsetY={0}>Marcadores sin ejes</Title2D>
                   <Function2D f={(x)=>Math.sin(2*x)*0.8} xRange={[-10,10]} stroke="#64748b" strokeDasharray="4 4" />
                   <Scatter2D points={pts} r={3} fill="#2563eb" />
@@ -264,11 +303,13 @@ const App: React.FC = () => {
                     <rect x={-4} y={-4} width={8} height={8} transform="rotate(45)" fill="none" stroke="#16a34a" strokeWidth={2} opacity={0.9} />
                   )} />
                 </Plot2D>
+                  )}
+                </AutoSizer>
               );
             })()}
 
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Estas demos muestran el lienzo limpio: sin ejes, ticks ni grillas; útil para presentaciones o piezas visuales. Aún puedes desplazar y hacer zoom.</p>
           </div>
         </div>
@@ -277,9 +318,11 @@ const App: React.FC = () => {
       {/* 10) Objetos 3D */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Objetos 3D</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot3D width={420} height={320} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.762}>
+              {(w,h)=> (
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
               <Axes3D size={2.5} thickness={0.06} negativeArrows={false} />
               <Grid3D size={10} divisions={20} />
               {/* Primitivas */}
@@ -314,8 +357,10 @@ const App: React.FC = () => {
                 { label: 'Cono', color:'#f59e0b' },
               ]} />
             </Plot3D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Escena 3D con ejes (RGB = X,Y,Z), grilla y varias primitivas: caja, esfera, toro, cilindro y cono.</p>
           </div>
         </div>
@@ -324,9 +369,11 @@ const App: React.FC = () => {
       {/* 11) Superficies 3D: z = f(x, y) y paramétricas (UV) */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Superficies 3D: z = f(x, y) y UV</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot3D width={420} height={320} background="#ffffff" camera={{ position:[5,4,6], lookAt:[0,0,0] }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.762}>
+              {(w,h)=> (
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[5,4,6], lookAt:[0,0,0] }}>
               <Axes3D size={3} thickness={0.05} negativeArrows={false} />
               <Grid3D size={12} divisions={24} />
               {(() => {
@@ -346,9 +393,13 @@ const App: React.FC = () => {
                 );
               })()}
             </Plot3D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="w-[420px] shrink-0">
-            <Plot3D width={420} height={320} background="#ffffff" camera={{ position:[5,4,6], lookAt:[0,0,0] }}>
+          <div className="w-full">
+            <AutoSizer aspect={0.762}>
+              {(w,h)=> (
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[5,4,6], lookAt:[0,0,0] }}>
               <Axes3D size={3} thickness={0.05} negativeArrows={false} />
               <Grid3D size={12} divisions={24} />
               {(() => {
@@ -370,8 +421,10 @@ const App: React.FC = () => {
                 );
               })()}
             </Plot3D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Ejemplos de superficies: una gráfica z=f(x,y) con color por altura y una superficie paramétrica (banda de Möbius) coloreada por u.</p>
           </div>
         </div>
@@ -380,9 +433,11 @@ const App: React.FC = () => {
       {/* 12) Scatter 3D con colormap */}
       <div className="rounded border bg-white p-3">
         <h2 className="font-semibold mb-2">Scatter 3D con colormap</h2>
-        <div className="flex items-start gap-6 flex-wrap">
-          <div className="w-[420px] shrink-0">
-            <Plot3D width={420} height={320} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full">
+            <AutoSizer aspect={0.762}>
+              {(w,h)=> (
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
               <Axes3D size={3} thickness={0.05} negativeArrows={false} />
               <Grid3D size={12} divisions={24} />
               {(() => {
@@ -406,10 +461,14 @@ const App: React.FC = () => {
                 return <Scatter3D points={pts} size={5} colorMap={(X,Y,Z,i)=>cmap(X,Y,Z)} />;
               })()}
             </Plot3D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="w-[420px] shrink-0">
+          <div className="w-full">
             {/* Versión sin ejes */}
-            <Plot3D width={420} height={320} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
+            <AutoSizer aspect={0.762}>
+              {(w,h)=> (
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
               {(() => {
                 // Esfera de puntos con color HSL por ángulo polar; sin ejes ni grilla
                 const pts: [number, number, number][] = [];
@@ -432,8 +491,10 @@ const App: React.FC = () => {
                 return <Scatter3D points={pts} size={4} colorMap={cmap} />;
               })()}
             </Plot3D>
+              )}
+            </AutoSizer>
           </div>
-          <div className="max-w-[420px] text-sm leading-6 text-gray-700">
+          <div className="w-full text-sm leading-6 text-gray-700">
             <p>Izquierda: puntos sobre z=sin(x)cos(y) coloreados por altura. Derecha: nube esférica sin ejes, coloreada por ángulo.</p>
           </div>
         </div>

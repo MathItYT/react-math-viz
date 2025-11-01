@@ -16,6 +16,7 @@ export type Plot2DProps = {
   onViewportChange?: (xRange: Range, yRange: Range) => void; // called whenever viewport changes due to interactions
   zoomable?: boolean; // enable wheel-zoom centered at cursor
   zoomSpeed?: number; // zoom multiplier per wheel step (e.g., 1.1)
+  pinchZoomable?: boolean; // enable two-finger pinch zoom on touch devices (defaults to true)
 };
 
 export function Plot2D({
@@ -31,6 +32,7 @@ export function Plot2D({
   onViewportChange,
   zoomable = true,
   zoomSpeed = 1.1,
+  pinchZoomable = true,
 }: Plot2DProps) {
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const svgRef = React.useRef<SVGSVGElement | null>(null);
@@ -84,20 +86,48 @@ export function Plot2D({
   const pxPerUnitX = innerWidth > 0 ? innerWidth / Math.max(1e-12, (curXRange[1] - curXRange[0])) : 1;
   const pxPerUnitY = innerHeight > 0 ? innerHeight / Math.max(1e-12, (curYRange[1] - curYRange[0])) : 1;
 
+  // Multi-touch tracking for pinch zoom
+  const pointersRef = React.useRef<Map<number, { clientX:number; clientY:number }>>(new Map());
+  const pinchRef = React.useRef<{ active:boolean; lastDist:number; lastCenter:{sx:number; sy:number; x:number; y:number} | null }>({ active:false, lastDist:0, lastCenter:null });
+
   const onPointerDown = React.useCallback((e: React.PointerEvent<SVGRectElement>) => {
-    if (!pannable) return;
-    // Only primary button for mouse; all pointers for touch/pen
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // Allow touch/pen pointers for pinch even when pannable=false
+    if (e.pointerType === 'mouse') {
+      if (!pannable) return; // don't start pan with mouse if pannable is disabled
+      if (e.button !== 0) return; // only primary button
+    }
     const target = e.currentTarget as SVGRectElement;
     try { (target as any).setPointerCapture?.(e.pointerId); } catch {}
-    panState.current = {
-      active: true,
-      startX: e.clientX,
-      startY: e.clientY,
-      startXRange: curXRange,
-      startYRange: curYRange,
-    };
-  }, [pannable, curXRange, curYRange]);
+    // Track pointer for potential pinch
+    pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    if (pinchZoomable && pointersRef.current.size >= 2) {
+      // Initialize pinch state
+      const svgEl = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
+      if (svgEl) {
+        const rect = svgEl.getBoundingClientRect();
+        const pts = Array.from(pointersRef.current.values());
+        const p0 = pts[0], p1 = pts[1];
+        const sx = (p0.clientX + p1.clientX) / 2 - rect.left;
+        const sy = (p0.clientY + p1.clientY) / 2 - rect.top;
+        const w = screenToWorld(sx, sy);
+        const dx = (p0.clientX - p1.clientX);
+        const dy = (p0.clientY - p1.clientY);
+        const dist = Math.hypot(dx, dy);
+        pinchRef.current = { active:true, lastDist: Math.max(1e-6, dist), lastCenter: { sx, sy, x: w.x, y: w.y } };
+        // Ensure pan is not active while pinching
+        panState.current.active = false;
+      }
+    } else if (pannable) {
+      // Start a pan gesture
+      panState.current = {
+        active: true,
+        startX: e.clientX,
+        startY: e.clientY,
+        startXRange: curXRange,
+        startYRange: curYRange,
+      };
+    }
+  }, [pannable, curXRange, curYRange, pinchZoomable]);
 
   const onPointerMove = React.useCallback((e: React.PointerEvent<SVGRectElement>) => {
     // update mouse state always (compute immediately to avoid React event pooling issues)
@@ -108,6 +138,44 @@ export function Plot2D({
       const sy = e.clientY - rect.top;
       const w = screenToWorld(sx, sy);
       setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
+    }
+    // Pinch handling (two fingers)
+    if (pinchRef.current.active && pinchZoomable) {
+      const svgEl2 = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
+      if (svgEl2) {
+        const rect2 = svgEl2.getBoundingClientRect();
+        if (pointersRef.current.has(e.pointerId)) {
+          pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+        }
+        if (pointersRef.current.size >= 2) {
+          const pts = Array.from(pointersRef.current.values());
+          const p0 = pts[0], p1 = pts[1];
+          const sx = (p0.clientX + p1.clientX) / 2 - rect2.left;
+          const sy = (p0.clientY + p1.clientY) / 2 - rect2.top;
+          const w = screenToWorld(sx, sy);
+          const dx = (p0.clientX - p1.clientX);
+          const dy = (p0.clientY - p1.clientY);
+          const dist = Math.max(1e-6, Math.hypot(dx, dy));
+          const s = dist / Math.max(1e-6, pinchRef.current.lastDist);
+          // Scale current ranges around current finger center
+          let nx: Range = [ w.x + (curXRange[0] - w.x) / s, w.x + (curXRange[1] - w.x) / s ];
+          let ny: Range = [ w.y + (curYRange[0] - w.y) / s, w.y + (curYRange[1] - w.y) / s ];
+          // Translate ranges to keep the world point under the fingers stationary
+          if (pinchRef.current.lastCenter) {
+            const dxw = pinchRef.current.lastCenter.x - w.x;
+            const dyw = pinchRef.current.lastCenter.y - w.y;
+            nx = [ nx[0] + dxw, nx[1] + dxw ];
+            ny = [ ny[0] + dyw, ny[1] + dyw ];
+          }
+          setCurXRange(nx);
+          setCurYRange(ny);
+          onViewportChange?.(nx, ny);
+          pinchRef.current.lastDist = dist;
+          pinchRef.current.lastCenter = { sx, sy, x: w.x, y: w.y };
+          setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
+        }
+      }
+      return;
     }
     if (!panState.current.active) return;
     const dxPx = e.clientX - panState.current.startX;
@@ -128,11 +196,18 @@ export function Plot2D({
   }, [pxPerUnitX, pxPerUnitY, onViewportChange]);
 
   const endPan = React.useCallback((e?: React.PointerEvent<SVGRectElement>) => {
-    if (!panState.current.active) return;
     if (e) {
       try { (e.currentTarget as any).releasePointerCapture?.(e.pointerId); } catch {}
+      pointersRef.current.delete((e as any).pointerId);
     }
+    // End pan if it was active
     panState.current.active = false;
+    // If pinch loses fingers, end pinch
+    if (pinchRef.current.active && pointersRef.current.size < 2) {
+      pinchRef.current.active = false;
+      pinchRef.current.lastCenter = null;
+      pinchRef.current.lastDist = 0;
+    }
   }, []);
 
   // Mouse state for crosshair/tooltip
@@ -200,7 +275,7 @@ export function Plot2D({
     <div
       ref={wrapperRef}
       className={className}
-      style={{ position: "relative", width, height, overscrollBehavior: 'contain', touchAction: (pannable || zoomable) ? 'none' as any : 'auto', ...style }}
+  style={{ position: "relative", width, height, overscrollBehavior: 'contain', touchAction: (pannable || zoomable || pinchZoomable) ? 'none' as any : 'auto', ...style }}
     >
       <svg ref={svgRef} width={width} height={height} style={{ position: "absolute", inset: 0 }}>
         <defs>
@@ -217,7 +292,7 @@ export function Plot2D({
             width={innerWidth}
             height={innerHeight}
             fill="transparent"
-            style={{ cursor: pannable ? (panState.current.active ? 'grabbing' : 'grab') : 'default', touchAction: pannable ? 'none' as any : 'auto' as any }}
+            style={{ cursor: pannable ? (panState.current.active ? 'grabbing' : 'grab') : 'default', touchAction: (pannable || pinchZoomable) ? 'none' as any : 'auto' as any }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={endPan}

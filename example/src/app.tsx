@@ -28,7 +28,7 @@ const App: React.FC = () => {
           <div className="w-full">
             <AutoSizer aspect={1}>
               {(w,h)=> (
-            <Plot2D width={w} height={h} xRange={[-1.4, 1.4]} yRange={[-1.4, 1.4]} pannable={false} zoomable={false}>
+            <Plot2D width={w} height={h} xRange={[-1.4, 1.4]} yRange={[-1.4, 1.4]} pannable={false} zoomable={false} pinchZoomable={false}>
               <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} gridXDelta={0.5} gridYDelta={0.5}
                 renderXLabel={(x:number)=>null} renderYLabel={(y:number)=>null} />
               {/* Circunferencia unitaria */}

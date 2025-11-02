@@ -1,5 +1,6 @@
 import React from "react";
 import { useThree } from "./threeContext";
+import { useThreeParent } from "./threeParent";
 
 export type Axes3DProps = {
   /** Half-extent of each axis; axes go from -size to +size. */
@@ -14,9 +15,11 @@ export type Axes3DProps = {
 
 export function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows = false }: Axes3DProps) {
   const { THREE, scene } = useThree();
+  const parent = useThreeParent();
   // Render the actual axis meshes in an effect
   React.useEffect(() => {
     if (!THREE || !scene) return;
+    const target = parent ?? scene;
     // Thin axes using lines from -size to +size
     if (!thickness || thickness <= 0) {
       const group = new THREE.Group();
@@ -60,12 +63,12 @@ export function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows 
       };
 
       const cleanups: Array<() => void> = [];
-      scene.add(group);
+      target.add(group);
       cleanups.push(mkLine('x', 0xff0000));
       cleanups.push(mkLine('y', 0x00ff00));
       cleanups.push(mkLine('z', 0x0000ff));
       return () => {
-        scene.remove(group);
+        target.remove(group);
         cleanups.forEach(fn => { try { fn(); } catch {} });
       };
     }
@@ -115,16 +118,16 @@ export function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows 
     };
 
     const cleanups: Array<() => void> = [];
-    scene.add(group);
+    target.add(group);
     cleanups.push(mkAxis('x', 0xff0000));
     cleanups.push(mkAxis('y', 0x00ff00));
     cleanups.push(mkAxis('z', 0x0000ff));
 
     return () => {
-      scene.remove(group);
+      target.remove(group);
       cleanups.forEach(fn => { try { fn(); } catch {} });
     };
-  }, [THREE, scene, size, thickness, arrows, negativeArrows]);
+  }, [THREE, scene, parent, size, thickness, arrows, negativeArrows]);
 
   // Also allow rendering customizable tip labels via Label3D by composing this component with it
   return null;

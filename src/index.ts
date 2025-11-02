@@ -40,3 +40,10 @@ export { Cone3D } from "./Cone3D";
 export { Surface3D } from "./Surface3D";
 export { ParametricSurface3D } from "./ParametricSurface3D";
 export { Scatter3D } from "./Scatter3D";
+// Animation
+export { useAnimation } from "./useAnimation";
+export { Group3D } from "./Group3D";
+export * from "./easing";
+export { useTween } from "./useTween";
+export { Animate2D } from "./Animate2D";
+export { Animate3D } from "./Animate3D";

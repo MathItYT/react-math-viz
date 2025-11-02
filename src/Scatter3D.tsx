@@ -1,5 +1,6 @@
 import React from "react";
 import { useThree } from "./threeContext";
+import { useThreeParent } from "./threeParent";
 
 export type Scatter3DProps = {
   points: Array<[number, number, number]>;
@@ -12,6 +13,7 @@ export type Scatter3DProps = {
 
 export function Scatter3D({ points, color = 0x3b82f6, colors, colorMap, size = 6, opacity = 1 }: Scatter3DProps) {
   const { THREE, scene } = useThree();
+  const parent = useThreeParent();
   const ptsRef = React.useRef<any>(null);
 
   const buildGeometry = React.useCallback(() => {
@@ -49,10 +51,10 @@ export function Scatter3D({ points, color = 0x3b82f6, colors, colorMap, size = 6
       transparent: opacity < 1
     });
     const pointsObj = new THREE.Points(built.geo, mat);
-    scene.add(pointsObj);
+    (parent ?? scene).add(pointsObj);
     ptsRef.current = pointsObj;
-    return () => { scene.remove(pointsObj); built.geo.dispose(); mat.dispose(); };
-  }, [THREE, scene]);
+    return () => { (parent ?? scene).remove(pointsObj); built.geo.dispose(); mat.dispose(); };
+  }, [THREE, scene, parent]);
 
   React.useEffect(() => {
     const obj = ptsRef.current; if (!obj) return;

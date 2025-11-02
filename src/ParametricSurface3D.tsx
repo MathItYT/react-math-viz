@@ -1,5 +1,6 @@
 import React from "react";
 import { useThree } from "./threeContext";
+import { useThreeParent } from "./threeParent";
 
 export type ParametricSurface3DProps = {
   uRange: [number, number];
@@ -15,6 +16,7 @@ export type ParametricSurface3DProps = {
 
 export function ParametricSurface3D({ uRange, vRange, uSegments=80, vSegments=30, f, color=0x0ea5e9, colorMap, wireframe=false, doubleSided=true }: ParametricSurface3DProps) {
   const { THREE, scene } = useThree();
+  const parent = useThreeParent();
   const meshRef = React.useRef<any>(null);
 
   const buildGeometry = React.useCallback(() => {
@@ -59,10 +61,10 @@ export function ParametricSurface3D({ uRange, vRange, uSegments=80, vSegments=30
     const geo = buildGeometry(); if (!geo) return;
     const mat = new THREE.MeshStandardMaterial({ color, wireframe, vertexColors: !!colorMap, side: doubleSided ? THREE.DoubleSide : THREE.FrontSide });
     const mesh = new THREE.Mesh(geo, mat);
-    scene.add(mesh);
+    (parent ?? scene).add(mesh);
     meshRef.current = mesh;
-    return () => { scene.remove(mesh); geo.dispose(); mat.dispose(); };
-  }, [THREE, scene]);
+    return () => { (parent ?? scene).remove(mesh); geo.dispose(); mat.dispose(); };
+  }, [THREE, scene, parent]);
 
   React.useEffect(() => {
     if (!meshRef.current) return;

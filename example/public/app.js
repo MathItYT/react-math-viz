@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 // @ts-ignore - use CDN ESM at runtime
 import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs';
 // @ts-ignore - served by Express at runtime
-import { Plot2D, Axes2D, Arc, Circle, Label, Line, Function2D, Point2D, Scatter2D, Ray2D, Vector2D, Polyline2D, Bezier2D, Area2D, RiemannSum, TangentLine, NormalLine, AngleMarker, DistanceMarker, VectorField2D, Heatmap2D, Contour2D, PolarFunction2D, Crosshair2D, Legend2D, Title2D, Plot3D, Axes3D, Grid3D, Box3D, Sphere3D, Label3D, Legend3D, Torus3D, Cylinder3D, Cone3D, Surface3D, ParametricSurface3D, Scatter3D } from '/lib/index.js';
+import { Plot2D, Axes2D, Arc, Circle, Label, Line, Function2D, Point2D, Scatter2D, Ray2D, Vector2D, Polyline2D, Bezier2D, Area2D, RiemannSum, TangentLine, NormalLine, AngleMarker, DistanceMarker, VectorField2D, Heatmap2D, Contour2D, PolarFunction2D, Crosshair2D, Legend2D, Title2D, Plot3D, Axes3D, Grid3D, Box3D, Sphere3D, Label3D, Legend3D, Torus3D, Cylinder3D, Cone3D, Surface3D, ParametricSurface3D, Scatter3D, Group3D, Animate2D, Animate3D, useAnimation } from '/lib/index.js';
 import { AutoSizer } from './Responsive.js';
 const App = () => {
     // Ángulo para la circunferencia unitaria
@@ -15,7 +15,31 @@ const App = () => {
     const xTheta = Math.cos(theta);
     const yTheta = Math.sin(theta);
     const f = React.useCallback((x) => Math.sin(x), []);
-    return (_jsxs("div", { className: "mx-auto max-w-[1100px] p-4 space-y-4", children: [_jsx("header", { className: "flex items-center justify-between", children: _jsx("h1", { className: "text-2xl font-semibold", children: "\u00BFQu\u00E9 son las funciones trigonom\u00E9tricas?" }) }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "\u00BFDe d\u00F3nde viene el seno? Circunferencia unitaria" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsxs("div", { className: "w-full", children: [_jsx(AutoSizer, { aspect: 1, children: (w, h) => (_jsxs(Plot2D, { width: w, height: h, xRange: [-1.4, 1.4], yRange: [-1.4, 1.4], pannable: false, zoomable: false, children: [_jsx(Axes2D, { grid: { stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }, gridXDelta: 0.5, gridYDelta: 0.5, renderXLabel: (x) => null, renderYLabel: (y) => null }), _jsx(Circle, { cx: 0, cy: 0, r: 1, stroke: "#111", strokeWidth: 1.5 }), _jsx(Arc, { cx: 0, cy: 0, r: 0.35, a0: 0, a1: theta, stroke: "#ef4444", strokeWidth: 2, fill: "#ef4444", fillOpacity: 0.15 }), (() => {
+    // Animations hooks (used later in the Animaciones section)
+    const anim2D = useAnimation === null || useAnimation === void 0 ? void 0 : useAnimation({ autoplay: true, speed: 1 });
+    const anim3D = useAnimation === null || useAnimation === void 0 ? void 0 : useAnimation({ autoplay: true, speed: 0.8 });
+    // Stable random sphere for Scatter3D (avoid regenerating every render)
+    const spherePts = React.useMemo(() => {
+        const pts = [];
+        const N = 2500;
+        for (let i = 0; i < N; i++) {
+            const u = Math.random();
+            const v = Math.random();
+            const theta = 2 * Math.PI * u;
+            const phi = Math.acos(2 * v - 1);
+            const r = 1.6 + (Math.random() * 0.08 - 0.04);
+            const x = r * Math.sin(phi) * Math.cos(theta);
+            const y = r * Math.cos(phi);
+            const z = r * Math.sin(phi) * Math.sin(theta);
+            pts.push([x, y, z]);
+        }
+        return pts;
+    }, []);
+    const sphereColorMap = React.useCallback((x, _y, z, _i) => {
+        const h = Math.floor((Math.atan2(z, x) / (2 * Math.PI) + 0.5) * 360);
+        return `hsl(${h}, 80%, 55%)`;
+    }, []);
+    return (_jsxs("div", { className: "mx-auto max-w-[1100px] p-4 space-y-4", children: [_jsx("header", { className: "flex items-center justify-between", children: _jsx("h1", { className: "text-2xl font-semibold", children: "\u00BFQu\u00E9 son las funciones trigonom\u00E9tricas?" }) }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "\u00BFDe d\u00F3nde viene el seno? Circunferencia unitaria" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsxs("div", { className: "w-full", children: [_jsx(AutoSizer, { aspect: 1, children: (w, h) => (_jsxs(Plot2D, { width: w, height: h, xRange: [-1.4, 1.4], yRange: [-1.4, 1.4], pannable: false, zoomable: false, pinchZoomable: false, children: [_jsx(Axes2D, { grid: { stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }, gridXDelta: 0.5, gridYDelta: 0.5, renderXLabel: (x) => null, renderYLabel: (y) => null }), _jsx(Circle, { cx: 0, cy: 0, r: 1, stroke: "#111", strokeWidth: 1.5 }), _jsx(Arc, { cx: 0, cy: 0, r: 0.35, a0: 0, a1: theta, stroke: "#ef4444", strokeWidth: 2, fill: "#ef4444", fillOpacity: 0.15 }), (() => {
                                                     const [a, b] = xTheta >= 0 ? [0, xTheta] : [xTheta, 0];
                                                     return _jsx(Line, { x1: a, y1: 0, x2: b, y2: 0, stroke: "#2563eb", strokeWidth: 2 });
                                                 })(), (() => {
@@ -43,7 +67,7 @@ const App = () => {
                                             return [x, Math.sin(2 * x) * 0.8];
                                         });
                                         return (_jsx(AutoSizer, { aspect: 0.524, children: (w, h) => (_jsxs(Plot2D, { width: w, height: h, xRange: [-2.2, 2.2], yRange: [-1.6, 1.6], pannable: true, children: [_jsx(Title2D, { offsetY: 0, children: "Marcadores sin ejes" }), _jsx(Function2D, { f: (x) => Math.sin(2 * x) * 0.8, xRange: [-10, 10], stroke: "#64748b", strokeDasharray: "4 4" }), _jsx(Scatter2D, { points: pts, r: 3, fill: "#2563eb" }), _jsx(Scatter2D, { points: pts, renderPoint: ({ i }) => (_jsx("rect", { x: -4, y: -4, width: 8, height: 8, transform: "rotate(45)", fill: "none", stroke: "#16a34a", strokeWidth: 2, opacity: 0.9 })) })] })) }));
-                                    })()] }), _jsx("div", { className: "w-full text-sm leading-6 text-gray-700", children: _jsx("p", { children: "Estas demos muestran el lienzo limpio: sin ejes, ticks ni grillas; \u00FAtil para presentaciones o piezas visuales. A\u00FAn puedes desplazar y hacer zoom." }) })] })] }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "Objetos 3D" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [4, 3, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 2.5, thickness: 0.06, negativeArrows: false }), _jsx(Grid3D, { size: 10, divisions: 20 }), _jsx(Box3D, { size: [1.2, 0.8, 1.0], position: [1.2, 0.4, 0], color: 0xef4444 }), _jsx(Sphere3D, { radius: 0.6, position: [-1.0, 0.6, 0], color: 0x10b981 }), _jsx(Torus3D, { radius: 0.7, tube: 0.18, position: [0, 0.5, -1.0], color: 0x9333ea }), _jsx(Cylinder3D, { radiusTop: 0.25, radiusBottom: 0.25, height: 1.0, position: [-1.6, 0.5, -0.8], rotation: [Math.PI / 2, 0, 0], color: 0x64748b }), _jsx(Cone3D, { radius: 0.35, height: 1.0, position: [1.8, 0.5, -1.0], rotation: [Math.PI / 2, 0.2, 0], color: 0xf59e0b }), (() => {
+                                    })()] }), _jsx("div", { className: "w-full text-sm leading-6 text-gray-700", children: _jsx("p", { children: "Estas demos muestran el lienzo limpio: sin ejes, ticks ni grillas; \u00FAtil para presentaciones o piezas visuales. A\u00FAn puedes desplazar y hacer zoom." }) })] })] }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "Objetos 3D" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [-4, 3, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 2.5, thickness: 0.06, negativeArrows: false }), _jsx(Grid3D, { size: 10, divisions: 20 }), _jsx(Box3D, { size: [1.2, 0.8, 1.0], position: [1.2, 0.4, 0], color: 0xef4444 }), _jsx(Sphere3D, { radius: 0.6, position: [-1.0, 0.6, 0], color: 0x10b981 }), _jsx(Torus3D, { radius: 0.7, tube: 0.18, position: [0, 0.5, -1.0], color: 0x9333ea }), _jsx(Cylinder3D, { radiusTop: 0.25, radiusBottom: 0.25, height: 1.0, position: [-1.6, 0.5, -0.8], rotation: [Math.PI / 2, 0, 0], color: 0x64748b }), _jsx(Cone3D, { radius: 0.35, height: 1.0, position: [1.8, 0.5, -1.0], rotation: [Math.PI / 2, 0.2, 0], color: 0xf59e0b }), (() => {
                                                 const S = 2.5;
                                                 return (_jsxs(_Fragment, { children: [_jsx(Label3D, { position: [S, 0, 0], align: "left", vAlign: "middle", dx: 8, children: _jsx("span", { style: { color: '#ef4444', fontWeight: 600 }, children: "X" }) }), _jsx(Label3D, { position: [0, S, 0], align: "center", vAlign: "bottom", dy: -8, children: _jsx("span", { style: { color: '#16a34a', fontWeight: 600 }, children: "Y" }) }), _jsx(Label3D, { position: [0, 0, S], align: "left", vAlign: "middle", dx: 8, children: _jsx("span", { style: { color: '#2563eb', fontWeight: 600 }, children: "Z" }) })] }));
                                             })(), _jsx(Legend3D, { position: "top-right", items: [
@@ -55,7 +79,7 @@ const App = () => {
                                                     { label: 'Toro', color: '#9333ea' },
                                                     { label: 'Cilindro', color: '#64748b' },
                                                     { label: 'Cono', color: '#f59e0b' },
-                                                ] })] })) }) }), _jsx("div", { className: "w-full text-sm leading-6 text-gray-700", children: _jsx("p", { children: "Escena 3D con ejes (RGB = X,Y,Z), grilla y varias primitivas: caja, esfera, toro, cilindro y cono." }) })] })] }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "Superficies 3D: z = f(x, y) y UV" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [5, 4, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 3, thickness: 0.05, negativeArrows: false }), _jsx(Grid3D, { size: 12, divisions: 24 }), (() => {
+                                                ] })] })) }) }), _jsx("div", { className: "w-full text-sm leading-6 text-gray-700", children: _jsx("p", { children: "Escena 3D con ejes (RGB = X,Y,Z), grilla y varias primitivas: caja, esfera, toro, cilindro y cono." }) })] })] }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "Superficies 3D: z = f(x, y) y UV" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [-5, 4, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 3, thickness: 0.05, negativeArrows: false }), _jsx(Grid3D, { size: 12, divisions: 24 }), (() => {
                                                 const fz = (x, y) => {
                                                     const r = Math.sqrt(x * x + y * y) + 1e-6;
                                                     return Math.sin(r * 2) / r; // tipo sinc radial
@@ -68,7 +92,7 @@ const App = () => {
                                                     return `rgb(${r},${g},${b})`;
                                                 };
                                                 return (_jsx(Surface3D, { xRange: [-3, 3], yRange: [-3, 3], xSegments: 100, ySegments: 80, f: fz, colorMap: cmap, doubleSided: true }));
-                                            })()] })) }) }), _jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [5, 4, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 3, thickness: 0.05, negativeArrows: false }), _jsx(Grid3D, { size: 12, divisions: 24 }), (() => {
+                                            })()] })) }) }), _jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [-5, 4, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 3, thickness: 0.05, negativeArrows: false }), _jsx(Grid3D, { size: 12, divisions: 24 }), (() => {
                                                 // Banda de Möbius paramétrica
                                                 const mobius = (u, v) => {
                                                     const R = 1.6;
@@ -84,7 +108,7 @@ const App = () => {
                                                     return `hsl(${Math.floor(240 * (1 - t))}, 80%, 55%)`;
                                                 };
                                                 return (_jsx(ParametricSurface3D, { uRange: [0, 2 * Math.PI], vRange: [-0.3, 0.3], uSegments: 200, vSegments: 36, f: mobius, colorMap: cmap, doubleSided: true }));
-                                            })()] })) }) }), _jsx("div", { className: "w-full text-sm leading-6 text-gray-700", children: _jsx("p", { children: "Ejemplos de superficies: una gr\u00E1fica z=f(x,y) con color por altura y una superficie param\u00E9trica (banda de M\u00F6bius) coloreada por u." }) })] })] }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "Scatter 3D con colormap" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [4, 3, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 3, thickness: 0.05, negativeArrows: false }), _jsx(Grid3D, { size: 12, divisions: 24 }), (() => {
+                                            })()] })) }) }), _jsx("div", { className: "w-full text-sm leading-6 text-gray-700", children: _jsx("p", { children: "Ejemplos de superficies: una gr\u00E1fica z=f(x,y) con color por altura y una superficie param\u00E9trica (banda de M\u00F6bius) coloreada por u." }) })] })] }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "Scatter 3D con colormap" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [-4, 3, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 3, thickness: 0.05, negativeArrows: false }), _jsx(Grid3D, { size: 12, divisions: 24 }), (() => {
                                                 // Muestra puntos sampleando z=f(x,y) con rejilla regular y color por z
                                                 const pts = [];
                                                 for (let j = 0; j <= 40; j++) {
@@ -103,27 +127,51 @@ const App = () => {
                                                     return `rgb(${r},${g},${b})`;
                                                 };
                                                 return _jsx(Scatter3D, { points: pts, size: 5, colorMap: (X, Y, Z, i) => cmap(X, Y, Z) });
-                                            })()] })) }) }), _jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsx(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [4, 3, 6], lookAt: [0, 0, 0] }, children: (() => {
-                                            // Esfera de puntos con color HSL por ángulo polar; sin ejes ni grilla
-                                            const pts = [];
-                                            const N = 2500;
-                                            for (let i = 0; i < N; i++) {
-                                                const u = Math.random();
-                                                const v = Math.random();
-                                                const theta = 2 * Math.PI * u;
-                                                const phi = Math.acos(2 * v - 1);
-                                                const r = 1.6 + (Math.random() * 0.08 - 0.04);
-                                                const x = r * Math.sin(phi) * Math.cos(theta);
-                                                const y = r * Math.cos(phi);
-                                                const z = r * Math.sin(phi) * Math.sin(theta);
-                                                pts.push([x, y, z]);
-                                            }
-                                            const cmap = (_x, _y, _z, _i) => {
-                                                const h = Math.floor((Math.atan2(_z, _x) / (2 * Math.PI) + 0.5) * 360);
-                                                return `hsl(${h}, 80%, 55%)`;
-                                            };
-                                            return _jsx(Scatter3D, { points: pts, size: 4, colorMap: cmap });
-                                        })() })) }) }), _jsx("div", { className: "w-full text-sm leading-6 text-gray-700", children: _jsx("p", { children: "Izquierda: puntos sobre z=sin(x)cos(y) coloreados por altura. Derecha: nube esf\u00E9rica sin ejes, coloreada por \u00E1ngulo." }) })] })] }), _jsx("footer", { className: "text-xs text-gray-500", children: "Creado por MathItYT." })] }));
+                                            })()] })) }) }), _jsx("div", { className: "w-full", children: _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsx(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [-4, 3, 6], lookAt: [0, 0, 0] }, children: _jsx(Scatter3D, { points: spherePts, size: 4, colorMap: sphereColorMap }) })) }) }), _jsx("div", { className: "w-full text-sm leading-6 text-gray-700", children: _jsx("p", { children: "Izquierda: puntos sobre z=sin(x)cos(y) coloreados por altura. Derecha: nube esf\u00E9rica sin ejes, coloreada por \u00E1ngulo." }) })] })] }), _jsxs("div", { className: "rounded border bg-white p-3", children: [_jsx("h2", { className: "font-semibold mb-2", children: "Animaciones" }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsxs("div", { className: "w-full", children: [_jsx(AutoSizer, { aspect: 1, children: (w, h) => {
+                                            var _a;
+                                            const tt = (_a = anim2D === null || anim2D === void 0 ? void 0 : anim2D.t) !== null && _a !== void 0 ? _a : 0;
+                                            const cx = Math.cos(tt);
+                                            const cy = Math.sin(tt);
+                                            return (_jsxs(Plot2D, { width: w, height: h, xRange: [-1.4, 1.4], yRange: [-1.4, 1.4], pannable: false, children: [_jsx(Title2D, { offsetY: 0, children: "Punto animado: (cos t, sin t)" }), _jsx(Axes2D, { grid: { stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }, renderXLabel: () => null, renderYLabel: () => null }), _jsx(Circle, { cx: 0, cy: 0, r: 1, stroke: "#111" }), _jsx(Line, { x1: 0, y1: 0, x2: cx, y2: cy, stroke: "#ef4444" }), _jsx(Point2D, { x: cx, y: cy, r: 4, fill: "#2563eb" }), _jsx(Label, { x: cx, y: cy, align: cx >= 0 ? "left" : "right", dx: cx >= 0 ? 6 : -6, children: _jsxs("span", { children: ["t=", (tt).toFixed(2)] }) })] }));
+                                        } }), _jsxs("div", { className: "mt-3 flex items-center gap-3", children: [_jsx("button", { className: "px-3 py-1 rounded bg-blue-600 text-white text-sm", onClick: () => { var _a; return (_a = anim2D === null || anim2D === void 0 ? void 0 : anim2D.play) === null || _a === void 0 ? void 0 : _a.call(anim2D); }, children: "Play" }), _jsx("button", { className: "px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm", onClick: () => { var _a; return (_a = anim2D === null || anim2D === void 0 ? void 0 : anim2D.stop) === null || _a === void 0 ? void 0 : _a.call(anim2D); }, children: "Stop" })] }), _jsx(Demo2DAnimations, {})] }), _jsxs("div", { className: "w-full", children: [_jsx(AutoSizer, { aspect: 0.762, children: (w, h) => {
+                                            var _a;
+                                            const t3 = (_a = anim3D === null || anim3D === void 0 ? void 0 : anim3D.t) !== null && _a !== void 0 ? _a : 0;
+                                            const R = 1.8;
+                                            const px = Math.cos(t3) * R;
+                                            const pz = Math.sin(t3) * R;
+                                            return (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [-5, 4, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 2.5, thickness: 0.05, negativeArrows: false }), _jsx(Grid3D, { size: 10, divisions: 20 }), _jsx(Sphere3D, { radius: 0.4, position: [px, 0.0, pz], color: 0x2563eb }), _jsx(Torus3D, { radius: R, tube: 0.01, rotation: [Math.PI / 2, 0, 0], color: 0x64748b })] }));
+                                        } }), _jsxs("div", { className: "mt-3 flex items-center gap-3", children: [_jsx("button", { className: "px-3 py-1 rounded bg-blue-600 text-white text-sm", onClick: () => { var _a; return (_a = anim3D === null || anim3D === void 0 ? void 0 : anim3D.play) === null || _a === void 0 ? void 0 : _a.call(anim3D); }, children: "Play" }), _jsx("button", { className: "px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm", onClick: () => { var _a; return (_a = anim3D === null || anim3D === void 0 ? void 0 : anim3D.stop) === null || _a === void 0 ? void 0 : _a.call(anim3D); }, children: "Stop" })] })] }), _jsx(Demo3DAnimations, {})] })] }), _jsx("footer", { className: "text-xs text-gray-500", children: "Creado por MathItYT." })] }));
 };
+// --------- Subcomponents for animation demos ---------
+function Demo2DAnimations() {
+    const [showObj, setShowObj] = React.useState(false);
+    const [isDisappearing, setIsDisappearing] = React.useState(false);
+    const [transformOn, setTransformOn] = React.useState(false);
+    const [createTick, setCreateTick] = React.useState(0);
+    const D = 700; // ms
+    React.useEffect(() => {
+        if (!isDisappearing)
+            return;
+        const id = setTimeout(() => { setShowObj(false); setIsDisappearing(false); }, D + 20);
+        return () => clearTimeout(id);
+    }, [isDisappearing]);
+    return (_jsxs("div", { className: "mt-4", children: [_jsxs("div", { className: "flex items-center gap-3 mb-2", children: [_jsx("button", { className: "px-3 py-1 rounded bg-emerald-600 text-white text-sm", onClick: () => { console.log('[2D] Crear'); setShowObj(true); setIsDisappearing(false); setCreateTick(t => t + 1); }, children: "Crear" }), _jsx("button", { className: "px-3 py-1 rounded bg-rose-600 text-white text-sm", onClick: () => { console.log('[2D] Destruir'); if (showObj)
+                            setIsDisappearing(true); }, children: "Destruir" }), _jsx("button", { className: "px-3 py-1 rounded bg-indigo-600 text-white text-sm", onClick: () => { console.log('[2D] Transformar toggle'); setTransformOn(v => !v); }, children: transformOn ? 'Detener transformación' : 'Transformar' })] }), _jsx(AutoSizer, { aspect: 1, children: (w, h) => (_jsxs(Plot2D, { width: w, height: h, xRange: [-1.5, 1.5], yRange: [-1.5, 1.5], pannable: false, children: [_jsx(Axes2D, { grid: { stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }, renderXLabel: () => null, renderYLabel: () => null }), showObj && (_jsx(Animate2D, { type: isDisappearing ? 'disappear' : 'appear', duration: D, replayKey: createTick, children: _jsx("g", { children: _jsx("circle", { cx: 0.6, cy: 0.6, r: 0.08, fill: "#2563eb" }) }) })), _jsx(Animate2D, { type: "transform", from: { x: -0.8 }, to: { x: 0.8 }, duration: 1200, easing: "easeInOutSine", autoplay: transformOn, loop: true, yoyo: true, children: _jsx("g", { children: _jsx("rect", { x: -0.08, y: -0.08, width: 0.16, height: 0.16, transform: "rotate(45)", fill: "none", stroke: "#16a34a", strokeWidth: 0.02, opacity: 0.95 }) }) })] })) })] }));
+}
+function Demo3DAnimations() {
+    const [showObj, setShowObj] = React.useState(false);
+    const [isDisappearing, setIsDisappearing] = React.useState(false);
+    const [transformOn, setTransformOn] = React.useState(false);
+    const [create3DTick, setCreate3DTick] = React.useState(0);
+    const D = 1600; // ms (más largo para que la animación sea inconfundible)
+    React.useEffect(() => {
+        if (!isDisappearing)
+            return;
+        const id = setTimeout(() => { setShowObj(false); setIsDisappearing(false); }, D + 20);
+        return () => clearTimeout(id);
+    }, [isDisappearing]);
+    return (_jsxs("div", { className: "w-full", children: [_jsxs("div", { className: "flex items-center gap-3 mb-2", children: [_jsx("button", { className: "px-3 py-1 rounded bg-emerald-600 text-white text-sm", onClick: () => { console.log('[3D] Crear'); setShowObj(true); setIsDisappearing(false); setCreate3DTick(t => t + 1); }, children: "Crear 3D" }), _jsx("button", { className: "px-3 py-1 rounded bg-rose-600 text-white text-sm", onClick: () => { console.log('[3D] Destruir'); if (showObj)
+                            setIsDisappearing(true); }, children: "Destruir 3D" }), _jsx("button", { className: "px-3 py-1 rounded bg-indigo-600 text-white text-sm", onClick: () => { console.log('[3D] Transformar toggle'); setTransformOn(v => !v); }, children: transformOn ? 'Detener transformación 3D' : 'Transformar 3D' })] }), _jsx(AutoSizer, { aspect: 0.762, children: (w, h) => (_jsxs(Plot3D, { width: w, height: h, background: "#ffffff", camera: { position: [-4, 3, 6], lookAt: [0, 0, 0] }, children: [_jsx(Axes3D, { size: 2.2, thickness: 0.05, negativeArrows: false }), _jsx(Grid3D, { size: 10, divisions: 20 }), showObj && (_jsx(Animate3D, { type: isDisappearing ? 'disappear' : 'appear', duration: D, easing: "easeInOutSine", replayKey: create3DTick, children: _jsxs(Group3D, { position: [0, 0, 0], children: [_jsx(Box3D, { size: [1, 0.6, 0.8], position: [-1.0, 0.3, 0], color: 0xef4444 }), _jsx(Sphere3D, { radius: 0.5, position: [1.0, 0.5, 0], color: 0x10b981 })] }) })), _jsx(Animate3D, { type: "transform", from: { position: [-1.4, 0.4, 0] }, to: { position: [1.4, 0.4, 0] }, duration: 2200, easing: "easeInOutSine", autoplay: transformOn, loop: true, yoyo: true, children: _jsxs(Group3D, { children: [_jsx(Torus3D, { radius: 0.5, tube: 0.12, rotation: [Math.PI / 2, 0, 0], color: 0x64748b }), _jsx(Sphere3D, { radius: 0.2, position: [0, 0, 0], color: 0x2563eb })] }) })] })) })] }));
+}
 const root = createRoot(document.getElementById('root'));
 root.render(_jsx(App, {}));

@@ -1,5 +1,6 @@
 import React from "react";
 import { useThree } from "./threeContext";
+import { useThreeParent } from "./threeParent";
 
 export type Sphere3DProps = {
   radius?: number;
@@ -12,6 +13,7 @@ export type Sphere3DProps = {
 
 export function Sphere3D({ radius = 0.6, widthSegments = 32, heightSegments = 16, position = [0,0,0], color = 0x10b981, wireframe = false }: Sphere3DProps) {
   const { THREE, scene } = useThree();
+  const parent = useThreeParent();
   const meshRef = React.useRef<any>(null);
 
   React.useEffect(() => {
@@ -20,14 +22,14 @@ export function Sphere3D({ radius = 0.6, widthSegments = 32, heightSegments = 16
     const mat = new THREE.MeshStandardMaterial({ color, wireframe });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(...position);
-    scene.add(mesh);
+    (parent ?? scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      scene.remove(mesh);
+      (parent ?? scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene]);
+  }, [THREE, scene, parent]);
 
   React.useEffect(() => {
     if (!meshRef.current) return;

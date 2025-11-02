@@ -4,7 +4,9 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc -p tsconfig.web.json",
-    "start": "node server.js"
+    "build:server": "tsc -p tsconfig.server.json",
+    "start": "npm run build && npm run build:server && node .server-build/server.js",
+    "start:js": "node server.js"
   },
   "dependencies": {
     "express": "^4.19.2",

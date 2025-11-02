@@ -60,7 +60,9 @@ export function Plot3D({
         const near = camera?.near ?? 0.1;
         const far = camera?.far ?? 1000;
   const cam = new THREE.PerspectiveCamera(fov, width / height, near, far);
-        const [cx, cy, cz] = camera?.position ?? [3, 3, 6];
+  // Default view tweaked so the +Z (blue) axis projects to the right on screen
+  // Old default was [3, 3, 6]; switching X to negative flips the horizontal projection of +Z
+  const [cx, cy, cz] = camera?.position ?? [-3, 3, 6];
         cam.position.set(cx, cy, cz);
         const look = camera?.lookAt ?? [0, 0, 0];
         cam.lookAt(...look);

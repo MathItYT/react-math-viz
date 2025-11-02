@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 // @ts-ignore - use CDN ESM at runtime
 import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs';
 // @ts-ignore - served by Express at runtime
-import { Plot2D, Axes2D, Arc, Circle, Label, Line, Function2D, Point2D, Scatter2D, Ray2D, Vector2D, Polyline2D, Bezier2D, Area2D, RiemannSum, TangentLine, NormalLine, AngleMarker, DistanceMarker, VectorField2D, Heatmap2D, Contour2D, PolarFunction2D, Crosshair2D, Legend2D, Title2D, Plot3D, Axes3D, Grid3D, Box3D, Sphere3D, Label3D, Legend3D, Torus3D, Cylinder3D, Cone3D, Surface3D, ParametricSurface3D, Scatter3D } from '/lib/index.js';
+import { Plot2D, Axes2D, Arc, Circle, Label, Line, Function2D, Point2D, Scatter2D, Ray2D, Vector2D, Polyline2D, Bezier2D, Area2D, RiemannSum, TangentLine, NormalLine, AngleMarker, DistanceMarker, VectorField2D, Heatmap2D, Contour2D, PolarFunction2D, Crosshair2D, Legend2D, Title2D, Plot3D, Axes3D, Grid3D, Box3D, Sphere3D, Label3D, Legend3D, Torus3D, Cylinder3D, Cone3D, Surface3D, ParametricSurface3D, Scatter3D, Group3D, Animate2D, Animate3D, useAnimation } from '/lib/index.js';
 import { AutoSizer } from './Responsive.js';
 
 const App: React.FC = () => {
@@ -15,6 +15,30 @@ const App: React.FC = () => {
   const xTheta = Math.cos(theta);
   const yTheta = Math.sin(theta);
   const f = React.useCallback((x:number) => Math.sin(x), []);
+  // Animations hooks (used later in the Animaciones section)
+  const anim2D = (useAnimation as any)?.({ autoplay: true, speed: 1 });
+  const anim3D = (useAnimation as any)?.({ autoplay: true, speed: 0.8 });
+  // Stable random sphere for Scatter3D (avoid regenerating every render)
+  const spherePts = React.useMemo<[number, number, number][]>(() => {
+    const pts: [number, number, number][] = [];
+    const N = 2500;
+    for (let i = 0; i < N; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = 2 * Math.PI * u;
+      const phi = Math.acos(2 * v - 1);
+      const r = 1.6 + (Math.random() * 0.08 - 0.04);
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = r * Math.cos(phi);
+      const z = r * Math.sin(phi) * Math.sin(theta);
+      pts.push([x, y, z]);
+    }
+    return pts;
+  }, []);
+  const sphereColorMap = React.useCallback((x:number,_y:number,z:number,_i:number) => {
+    const h = Math.floor((Math.atan2(z, x) / (2 * Math.PI) + 0.5) * 360);
+    return `hsl(${h}, 80%, 55%)`;
+  }, []);
   return (
     <div className="mx-auto max-w-[1100px] p-4 space-y-4">
       <header className="flex items-center justify-between">
@@ -322,7 +346,7 @@ const App: React.FC = () => {
           <div className="w-full">
             <AutoSizer aspect={0.762}>
               {(w,h)=> (
-            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[-4,3,6], lookAt:[0,0,0] }}>
               <Axes3D size={2.5} thickness={0.06} negativeArrows={false} />
               <Grid3D size={10} divisions={20} />
               {/* Primitivas */}
@@ -373,7 +397,7 @@ const App: React.FC = () => {
           <div className="w-full">
             <AutoSizer aspect={0.762}>
               {(w,h)=> (
-            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[5,4,6], lookAt:[0,0,0] }}>
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[-5,4,6], lookAt:[0,0,0] }}>
               <Axes3D size={3} thickness={0.05} negativeArrows={false} />
               <Grid3D size={12} divisions={24} />
               {(() => {
@@ -399,7 +423,7 @@ const App: React.FC = () => {
           <div className="w-full">
             <AutoSizer aspect={0.762}>
               {(w,h)=> (
-            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[5,4,6], lookAt:[0,0,0] }}>
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[-5,4,6], lookAt:[0,0,0] }}>
               <Axes3D size={3} thickness={0.05} negativeArrows={false} />
               <Grid3D size={12} divisions={24} />
               {(() => {
@@ -437,7 +461,7 @@ const App: React.FC = () => {
           <div className="w-full">
             <AutoSizer aspect={0.762}>
               {(w,h)=> (
-            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[-4,3,6], lookAt:[0,0,0] }}>
               <Axes3D size={3} thickness={0.05} negativeArrows={false} />
               <Grid3D size={12} divisions={24} />
               {(() => {
@@ -468,28 +492,9 @@ const App: React.FC = () => {
             {/* Versión sin ejes */}
             <AutoSizer aspect={0.762}>
               {(w,h)=> (
-            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[4,3,6], lookAt:[0,0,0] }}>
-              {(() => {
-                // Esfera de puntos con color HSL por ángulo polar; sin ejes ni grilla
-                const pts: [number, number, number][] = [];
-                const N = 2500;
-                for (let i=0;i<N;i++) {
-                  const u = Math.random();
-                  const v = Math.random();
-                  const theta = 2*Math.PI*u;
-                  const phi = Math.acos(2*v-1);
-                  const r = 1.6 + (Math.random()*0.08 - 0.04);
-                  const x = r*Math.sin(phi)*Math.cos(theta);
-                  const y = r*Math.cos(phi);
-                  const z = r*Math.sin(phi)*Math.sin(theta);
-                  pts.push([x,y,z]);
-                }
-                const cmap = (_x:number,_y:number,_z:number,_i:number) => {
-                  const h = Math.floor((Math.atan2(_z,_x)/(2*Math.PI) + 0.5)*360);
-                  return `hsl(${h}, 80%, 55%)`;
-                };
-                return <Scatter3D points={pts} size={4} colorMap={cmap} />;
-              })()}
+            <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[-4,3,6], lookAt:[0,0,0] }}>
+              {/* Esfera de puntos con color HSL por ángulo polar; sin ejes ni grilla */}
+              <Scatter3D points={spherePts} size={4} colorMap={sphereColorMap} />
             </Plot3D>
               )}
             </AutoSizer>
@@ -500,10 +505,179 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {/* 13) Animaciones */}
+      <div className="rounded border bg-white p-3">
+        <h2 className="font-semibold mb-2">Animaciones</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 2D: punto moviéndose en la circunferencia unitaria */}
+          <div className="w-full">
+            <AutoSizer aspect={1}>
+              {(w,h)=> {
+                const tt = anim2D?.t ?? 0;
+                const cx = Math.cos(tt);
+                const cy = Math.sin(tt);
+                return (
+                  <Plot2D width={w} height={h} xRange={[-1.4,1.4]} yRange={[-1.4,1.4]} pannable={false}>
+                    <Title2D offsetY={0}>Punto animado: (cos t, sin t)</Title2D>
+                    <Axes2D grid={{ stroke:'#9aa0a6', strokeWidth:1, opacity:0.18 }} renderXLabel={()=>null} renderYLabel={()=>null} />
+                    <Circle cx={0} cy={0} r={1} stroke="#111" />
+                    <Line x1={0} y1={0} x2={cx} y2={cy} stroke="#ef4444" />
+                    <Point2D x={cx} y={cy} r={4} fill="#2563eb" />
+                    <Label x={cx} y={cy} align={cx>=0?"left":"right"} dx={cx>=0?6:-6}>
+                      <span>t={(tt).toFixed(2)}</span>
+                    </Label>
+                  </Plot2D>
+                );
+              }}
+            </AutoSizer>
+            <div className="mt-3 flex items-center gap-3">
+              <button className="px-3 py-1 rounded bg-blue-600 text-white text-sm" onClick={()=>anim2D?.play?.()}>Play</button>
+              <button className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm" onClick={()=>anim2D?.stop?.()}>Stop</button>
+            </div>
+
+            <Demo2DAnimations />
+          </div>
+
+          {/* 3D: esfera orbitando en el plano XZ */}
+          <div className="w-full">
+            <AutoSizer aspect={0.762}>
+              {(w,h)=> {
+                const t3 = anim3D?.t ?? 0;
+                const R = 1.8;
+                const px = Math.cos(t3)*R;
+                const pz = Math.sin(t3)*R;
+                return (
+                  <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[-5,4,6], lookAt:[0,0,0] }}>
+                    <Axes3D size={2.5} thickness={0.05} negativeArrows={false} />
+                    <Grid3D size={10} divisions={20} />
+                    <Sphere3D radius={0.4} position={[px, 0.0, pz]} color={0x2563eb} />
+                    {/* Orientamos el toro al plano XZ para coincidir con la órbita */}
+                    <Torus3D radius={R} tube={0.01} rotation={[Math.PI/2, 0, 0]} color={0x64748b} />
+                  </Plot3D>
+                );
+              }}
+            </AutoSizer>
+            <div className="mt-3 flex items-center gap-3">
+              <button className="px-3 py-1 rounded bg-blue-600 text-white text-sm" onClick={()=>anim3D?.play?.()}>Play</button>
+              <button className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm" onClick={()=>anim3D?.stop?.()}>Stop</button>
+            </div>
+          </div>
+
+          {/* 3D: crear/destruir/transformar */}
+          <Demo3DAnimations />
+        </div>
+      </div>
+
       <footer className="text-xs text-gray-500">Creado por MathItYT.</footer>
     </div>
   );
 };
+
+// --------- Subcomponents for animation demos ---------
+function Demo2DAnimations() {
+  const [showObj, setShowObj] = React.useState(false);
+  const [isDisappearing, setIsDisappearing] = React.useState(false);
+  const [transformOn, setTransformOn] = React.useState(false);
+  const [createTick, setCreateTick] = React.useState(0);
+  const D = 700; // ms
+
+  React.useEffect(() => {
+    if (!isDisappearing) return;
+    const id = setTimeout(() => { setShowObj(false); setIsDisappearing(false); }, D + 20);
+    return () => clearTimeout(id);
+  }, [isDisappearing]);
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center gap-3 mb-2">
+        <button className="px-3 py-1 rounded bg-emerald-600 text-white text-sm" onClick={()=>{ console.log('[2D] Crear'); setShowObj(true); setIsDisappearing(false); setCreateTick(t=>t+1); }}>
+          Crear
+        </button>
+        <button className="px-3 py-1 rounded bg-rose-600 text-white text-sm" onClick={()=>{ console.log('[2D] Destruir'); if (showObj) setIsDisappearing(true); }}>
+          Destruir
+        </button>
+        <button className="px-3 py-1 rounded bg-indigo-600 text-white text-sm" onClick={()=> { console.log('[2D] Transformar toggle'); setTransformOn(v=>!v); }}>
+          {transformOn ? 'Detener transformación' : 'Transformar'}
+        </button>
+      </div>
+      <AutoSizer aspect={1}>
+        {(w,h)=> (
+          <Plot2D width={w} height={h} xRange={[-1.5,1.5]} yRange={[-1.5,1.5]} pannable={false}>
+            <Axes2D grid={{ stroke:'#9aa0a6', strokeWidth:1, opacity:0.18 }} renderXLabel={()=>null} renderYLabel={()=>null} />
+            {/* Crear/Destruir */}
+            {showObj && (
+              <Animate2D type={isDisappearing ? 'disappear' : 'appear'} duration={D} replayKey={createTick}>
+                <g>
+                  <circle cx={0.6} cy={0.6} r={0.08} fill="#2563eb" />
+                </g>
+              </Animate2D>
+            )}
+            {/* Transformar: rombo verde */}
+            <Animate2D type="transform" from={{x:-0.8}} to={{x:0.8}} duration={1200} easing="easeInOutSine" autoplay={transformOn} loop yoyo>
+              <g>
+                <rect x={-0.08} y={-0.08} width={0.16} height={0.16} transform="rotate(45)" fill="none" stroke="#16a34a" strokeWidth={0.02} opacity={0.95} />
+              </g>
+            </Animate2D>
+          </Plot2D>
+        )}
+      </AutoSizer>
+    </div>
+  );
+}
+
+function Demo3DAnimations() {
+  const [showObj, setShowObj] = React.useState(false);
+  const [isDisappearing, setIsDisappearing] = React.useState(false);
+  const [transformOn, setTransformOn] = React.useState(false);
+  const [create3DTick, setCreate3DTick] = React.useState(0);
+  const D = 1600; // ms (más largo para que la animación sea inconfundible)
+
+  React.useEffect(() => {
+    if (!isDisappearing) return;
+    const id = setTimeout(() => { setShowObj(false); setIsDisappearing(false); }, D + 20);
+    return () => clearTimeout(id);
+  }, [isDisappearing]);
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center gap-3 mb-2">
+        <button className="px-3 py-1 rounded bg-emerald-600 text-white text-sm" onClick={()=>{ console.log('[3D] Crear'); setShowObj(true); setIsDisappearing(false); setCreate3DTick(t=>t+1); }}>
+          Crear 3D
+        </button>
+        <button className="px-3 py-1 rounded bg-rose-600 text-white text-sm" onClick={()=>{ console.log('[3D] Destruir'); if (showObj) setIsDisappearing(true); }}>
+          Destruir 3D
+        </button>
+        <button className="px-3 py-1 rounded bg-indigo-600 text-white text-sm" onClick={()=> { console.log('[3D] Transformar toggle'); setTransformOn(v=>!v); }}>
+          {transformOn ? 'Detener transformación 3D' : 'Transformar 3D'}
+        </button>
+      </div>
+      <AutoSizer aspect={0.762}>
+        {(w,h)=> (
+          <Plot3D width={w} height={h} background="#ffffff" camera={{ position:[-4,3,6], lookAt:[0,0,0] }}>
+            <Axes3D size={2.2} thickness={0.05} negativeArrows={false} />
+            <Grid3D size={10} divisions={20} />
+            {/* Crear/Destruir */}
+            {showObj && (
+              <Animate3D type={isDisappearing ? 'disappear' : 'appear'} duration={D} easing="easeInOutSine" replayKey={create3DTick}>
+                <Group3D position={[0,0,0]}>
+                  <Box3D size={[1, 0.6, 0.8]} position={[-1.0, 0.3, 0]} color={0xef4444} />
+                  <Sphere3D radius={0.5} position={[1.0, 0.5, 0]} color={0x10b981} />
+                </Group3D>
+              </Animate3D>
+            )}
+            {/* Transformar */}
+            <Animate3D type="transform" from={{ position:[-1.4, 0.4, 0] }} to={{ position:[1.4, 0.4, 0] }} duration={2200} easing="easeInOutSine" autoplay={transformOn} loop yoyo>
+              <Group3D>
+                <Torus3D radius={0.5} tube={0.12} rotation={[Math.PI/2, 0, 0]} color={0x64748b} />
+                <Sphere3D radius={0.2} position={[0,0,0]} color={0x2563eb} />
+              </Group3D>
+            </Animate3D>
+          </Plot3D>
+        )}
+      </AutoSizer>
+    </div>
+  );
+}
 
 const root = createRoot(document.getElementById('root') as HTMLElement);
 root.render(<App />);

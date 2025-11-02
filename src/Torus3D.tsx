@@ -1,5 +1,6 @@
 import React from "react";
 import { useThree } from "./threeContext";
+import { useThreeParent } from "./threeParent";
 
 export type Torus3DProps = {
   radius?: number; // major radius
@@ -8,12 +9,14 @@ export type Torus3DProps = {
   tubularSegments?: number;
   arc?: number;
   position?: [number, number, number];
+  rotation?: [number, number, number];
   color?: string | number;
   wireframe?: boolean;
 };
 
-export function Torus3D({ radius=1, tube=0.3, radialSegments=16, tubularSegments=48, arc=Math.PI*2, position=[0,0,0], color=0x9333ea, wireframe=false }: Torus3DProps) {
+export function Torus3D({ radius=1, tube=0.3, radialSegments=16, tubularSegments=48, arc=Math.PI*2, position=[0,0,0], rotation=[0,0,0], color=0x9333ea, wireframe=false }: Torus3DProps) {
   const { THREE, scene } = useThree();
+  const parent = useThreeParent();
   const meshRef = React.useRef<any>(null);
 
   React.useEffect(() => {
@@ -22,16 +25,19 @@ export function Torus3D({ radius=1, tube=0.3, radialSegments=16, tubularSegments
     const mat = new THREE.MeshStandardMaterial({ color, wireframe });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(...position);
-    scene.add(mesh);
+    mesh.rotation.set(...rotation);
+    (parent ?? scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      scene.remove(mesh);
+      (parent ?? scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
   }, [THREE, scene]);
 
   React.useEffect(() => { meshRef.current?.position.set(...position); }, [position?.[0], position?.[1], position?.[2]]);
+
+  React.useEffect(() => { meshRef.current?.rotation.set(...rotation); }, [rotation?.[0], rotation?.[1], rotation?.[2]]);
 
   React.useEffect(() => {
     if (!meshRef.current || !THREE) return;

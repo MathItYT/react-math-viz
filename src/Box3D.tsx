@@ -1,5 +1,6 @@
 import React from "react";
 import { useThree } from "./threeContext";
+import { useThreeParent } from "./threeParent";
 
 export type Box3DProps = {
   size?: [number, number, number];
@@ -10,6 +11,7 @@ export type Box3DProps = {
 
 export function Box3D({ size = [1,1,1], position = [0,0,0], color = 0xef4444, wireframe = false }: Box3DProps) {
   const { THREE, scene } = useThree();
+  const parent = useThreeParent();
   const meshRef = React.useRef<any>(null);
 
   React.useEffect(() => {
@@ -18,14 +20,14 @@ export function Box3D({ size = [1,1,1], position = [0,0,0], color = 0xef4444, wi
     const mat = new THREE.MeshStandardMaterial({ color, wireframe });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(...position);
-    scene.add(mesh);
+    (parent ?? scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      scene.remove(mesh);
+      (parent ?? scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene]);
+  }, [THREE, scene, parent]);
 
   React.useEffect(() => {
     if (!meshRef.current) return;

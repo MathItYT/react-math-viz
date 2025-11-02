@@ -1,5 +1,6 @@
 import React from "react";
 import { useThree } from "./threeContext";
+import { useThreeParent } from "./threeParent";
 
 export type Surface3DProps = {
   xRange: [number, number];
@@ -15,6 +16,7 @@ export type Surface3DProps = {
 
 export function Surface3D({ xRange, yRange, xSegments=64, ySegments=48, f, color=0x22c55e, colorMap, wireframe=false, doubleSided=true }: Surface3DProps) {
   const { THREE, scene } = useThree();
+  const parent = useThreeParent();
   const meshRef = React.useRef<any>(null);
 
   const buildGeometry = React.useCallback(() => {
@@ -70,10 +72,10 @@ export function Surface3D({ xRange, yRange, xSegments=64, ySegments=48, f, color
     const geo = buildGeometry(); if (!geo) return;
     const mat = new THREE.MeshStandardMaterial({ color, wireframe, vertexColors: !!colorMap, side: doubleSided ? THREE.DoubleSide : THREE.FrontSide });
     const mesh = new THREE.Mesh(geo, mat);
-    scene.add(mesh);
+    (parent ?? scene).add(mesh);
     meshRef.current = mesh;
-    return () => { scene.remove(mesh); geo.dispose(); mat.dispose(); };
-  }, [THREE, scene]);
+    return () => { (parent ?? scene).remove(mesh); geo.dispose(); mat.dispose(); };
+  }, [THREE, scene, parent]);
 
   React.useEffect(() => {
     if (!meshRef.current) return;

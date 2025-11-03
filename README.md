@@ -11,7 +11,7 @@ Instala tus herramientas preferidas (p. ej., tsup o vite) y construye desde `src
 
 Ejemplo rápido (TypeScript):
 
-tsx
+```tsx
 import { Plot2D, Axes2D, Parametric2D, Polygon2D } from "react-math-viz";
 
 <Plot2D width={700} height={450} xRange={[-10,10]} yRange={[-6,6]}>
@@ -19,4 +19,5 @@ import { Plot2D, Axes2D, Parametric2D, Polygon2D } from "react-math-viz";
   <Parametric2D x={(t)=>t} y={(t)=>0.5*Math.sin(t)} tRange={[-12.56,12.56]} />
   <Polygon2D points={[[-7,-2],[-3,3],[-1,-4]]} />
 </Plot2D>
+```
 

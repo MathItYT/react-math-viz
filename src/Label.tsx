@@ -10,9 +10,11 @@ export type LabelProps = {
   dx?: number; // pixel offset x
   dy?: number; // pixel offset y
   pointerEvents?: "auto" | "none";
+  width?: string | number;
+  height?: string | number;
 };
 
-export function Label({ x, y, children, align = "center", vAlign = "middle", dx = 0, dy = 0, pointerEvents = "auto" }: LabelProps) {
+export function Label({ x, y, children, align = "center", vAlign = "middle", dx = 0, dy = 0, pointerEvents = "auto", width, height }: LabelProps) {
   const { worldToScreen, margin, innerWidth, innerHeight } = usePlot();
   const p = worldToScreen(x, y);
 
@@ -25,7 +27,7 @@ export function Label({ x, y, children, align = "center", vAlign = "middle", dx 
 
   return (
     <foreignObject x={margin.left} y={margin.top} width={innerWidth} height={innerHeight}>
-      <div style={{ position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222" }}>
+      <div style={{ position: "relative", width: width || "100%", height: height || "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222" }}>
         <div style={{ position: "absolute", left, top, transform: `translate(${transformX}, ${transformY})`, pointerEvents }}>
           {children}
         </div>

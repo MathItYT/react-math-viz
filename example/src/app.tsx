@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 // @ts-ignore - use CDN ESM at runtime
 import katex from 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs';
 // @ts-ignore - served by Express at runtime
-import { Plot2D, Axes2D, Arc, Circle, Label, Line, Function2D, Point2D, Scatter2D, Ray2D, Vector2D, Polyline2D, Bezier2D, Area2D, RiemannSum, TangentLine, NormalLine, AngleMarker, DistanceMarker, VectorField2D, Heatmap2D, Contour2D, PolarFunction2D, Crosshair2D, Legend2D, Title2D, Plot3D, Axes3D, Grid3D, Box3D, Sphere3D, Label3D, Legend3D, Torus3D, Cylinder3D, Cone3D, Surface3D, ParametricSurface3D, Scatter3D, Group3D, Animate2D, Animate3D, useAnimation } from '/lib/index.js';
+import { Plot2D, Axes2D, Arc, Circle, Label, Line, Function2D, Point2D, Scatter2D, Ray2D, Vector2D, Polygon2D, Polyline2D, Bezier2D, Area2D, RiemannSum, TangentLine, NormalLine, AngleMarker, DistanceMarker, VectorField2D, Heatmap2D, Contour2D, PolarFunction2D, Crosshair2D, Legend2D, Title2D, Plot3D, Axes3D, Grid3D, Box3D, Sphere3D, Label3D, Legend3D, Torus3D, Cylinder3D, Cone3D, Surface3D, ParametricSurface3D, Scatter3D, Group3D, Animate2D, Animate3D, useAnimation, LinearGradient2D, RadialGradient2D, Image2D } from '/lib/index.js';
 import { AutoSizer } from './Responsive.js';
 
 const App: React.FC = () => {
@@ -94,6 +94,88 @@ const App: React.FC = () => {
           <div className="w-full text-sm leading-6 text-gray-700">
             <div dangerouslySetInnerHTML={{__html: katex.renderToString('\\text{En la circunferencia unitaria, } x=\\cos(\\theta),\\ y=\\sin(\\theta).',{throwOnError:false})}} />
             <p className="mt-2">Mueve el deslizador para variar el ángulo y ver cómo cambian las coordenadas del punto sobre la circunferencia.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 10) Fondos recortados: gradientes e imagen */}
+      <div className="rounded border bg-white p-3">
+        <h2 className="font-semibold mb-2">Fondos recortados: gradientes e imagen</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LinearGradient2D con una estrella */}
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-2.2,2.2]} yRange={[-1.8,1.8]} pannable={true}>
+              <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
+              {(() => {
+                // Estrella de 5 puntas
+                const R = 1.2, r = 0.5;
+                const pts: [number,number][] = [];
+                for (let i=0;i<10;i++) {
+                  const ang = -Math.PI/2 + i*(Math.PI/5);
+                  const rr = i%2===0 ? R : r;
+                  pts.push([ rr*Math.cos(ang), rr*Math.sin(ang) ]);
+                }
+                const stops = [
+                  { offset: 0, color: '#2563eb' },
+                  { offset: 1, color: '#10b981' },
+                ];
+                return (
+                  <LinearGradient2D stops={stops} reveal="stroke">
+                    <Polygon2D points={pts} stroke="#000" fill="none" />
+                  </LinearGradient2D>
+                );
+              })()}
+              <Label x={0} y={-1.5}>
+                <span className="text-gray-700">LinearGradient2D recortado por una estrella</span>
+              </Label>
+            </Plot2D>
+              )}
+            </AutoSizer>
+          </div>
+          {/* RadialGradient2D con círculo */}
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-2.2,2.2]} yRange={[-1.8,1.8]} pannable={true}>
+              <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
+              <RadialGradient2D stops={[{offset:0, color:'#f59e0b', opacity:0.95}, {offset:1, color:'#f59e0b', opacity:0.05}]} r={1.0}>
+                <Circle cx={0} cy={0} r={1.0} fill="#000" />
+              </RadialGradient2D>
+              <Label x={0} y={-1.5}>
+                <span className="text-gray-700">RadialGradient2D recortado por un círculo</span>
+              </Label>
+            </Plot2D>
+              )}
+            </AutoSizer>
+          </div>
+          {/* Image2D dentro de un polígono */}
+          <div className="w-full">
+            <AutoSizer aspect={0.714}>
+              {(w,h)=> (
+            <Plot2D width={w} height={h} xRange={[-3.2,3.2]} yRange={[-2.2,2.2]} pannable={true}>
+              <Axes2D grid={{ stroke: '#9aa0a6', strokeWidth: 1, opacity: 0.18 }} />
+              {(() => {
+                const poly: [number,number][] = [[-2,-0.6],[-1.2,1.2],[0.2,1.0],[1.4,0.2],[2.2,-1.2],[-0.4,-1.5]];
+                return (
+                  <Image2D href="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Fronalpstock_big.jpg/1280px-Fronalpstock_big.jpg" imageX={-2} imageY={2} imageWidth={8.88} imageHeight={4}>
+                    <Polygon2D points={poly} fill="#000" />
+                  </Image2D>
+                );
+              })()}
+              <Label x={0} y={-1.9}>
+                <span className="text-gray-700">Image2D recortada por un polígono</span>
+              </Label>
+            </Plot2D>
+              )}
+            </AutoSizer>
+          </div>
+          <div className="w-full text-sm leading-6 text-gray-700">
+            <p>
+              Estos componentes aplican fondos de gradiente o imágenes y los recortan por cualquier contenido SVG que entregues como hijos.
+              Las etiquetas HTML (<code>Label</code>) funcionan como overlay y no forman parte del recorte, por compatibilidad de SVG.
+            </p>
           </div>
         </div>
       </div>

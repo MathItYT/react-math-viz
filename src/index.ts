@@ -26,6 +26,9 @@ export { PolarFunction2D } from "./PolarFunction2D";
 export { Crosshair2D } from "./Crosshair2D";
 export { Legend2D } from "./Legend2D";
 export { Title2D } from "./Title2D";
+export { LinearGradient2D } from "./LinearGradient2D";
+export { RadialGradient2D } from "./RadialGradient2D";
+export { Image2D } from "./Image2D";
 // 3D
 export { Plot3D } from "./Plot3D";
 export { Axes3D } from "./Axes3D";

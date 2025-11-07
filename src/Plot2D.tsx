@@ -268,11 +268,14 @@ export function Plot2D({
       e.preventDefault();
       const svg = svgRef.current;
       if (!svg) return;
-      const rect = svg.getBoundingClientRect();
-  const scaleX = rect.width > 0 ? width / rect.width : 1;
-  const scaleY = rect.height > 0 ? height / rect.height : 1;
-  const sx = (e.clientX - rect.left) * scaleX;
-  const sy = (e.clientY - rect.top) * scaleY;
+      // Usar matriz inversa del SVG para coordenadas exactas bajo cualquier transform
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX; pt.y = e.clientY;
+      const ctm = svg.getScreenCTM();
+      let svgP = { x: e.clientX, y: e.clientY };
+      if (ctm) svgP = pt.matrixTransform(ctm.inverse());
+      const sx = svgP.x;
+      const sy = svgP.y;
       const w = screenToWorld(sx, sy);
       const zx = e.deltaY < 0 ? (1 / zoomSpeed) : zoomSpeed;
       const zy = zx; // future: independent zoom per axis

@@ -1574,8 +1574,90 @@ function Crosshair2D({ color = "#6b7280", strokeWidth = 1, showLabels = true, fo
   ] });
 }
 
-// src/Legend2D.tsx
+// src/NumberLine.tsx
 import { jsx as jsx27, jsxs as jsxs7 } from "react/jsx-runtime";
+function NumberLine({
+  xRange,
+  y = 0,
+  ticks,
+  approxTicks = 9,
+  delta,
+  minorSubdivisions = 0,
+  minMinorPx = 14,
+  color = "#333",
+  strokeWidth = 1,
+  tickSize = 8,
+  minorTickSize = 5,
+  renderLabel,
+  labelOffset = 8,
+  labelsAbove = false
+}) {
+  const { xRange: plotX, worldToScreen, clipPathId, innerWidth, margin } = usePlot();
+  const xr = xRange ?? plotX;
+  const p0 = worldToScreen(0, y);
+  const p1 = worldToScreen(1, y);
+  const pxPerUnitX = Math.max(1e-9, Math.abs(p1.x - p0.x));
+  let major = [];
+  if (Array.isArray(ticks) && ticks.length > 0) {
+    major = Array.from(new Set(ticks)).sort((a, b) => a - b);
+  } else if (typeof delta === "number" && delta > 0) {
+    major = generateTicksFromDelta(xr[0], xr[1], delta, 0);
+    if (major.length <= 1) {
+      major = generateTicks(xr[0], xr[1], approxTicks);
+    }
+  } else {
+    major = generateTicks(xr[0], xr[1], approxTicks);
+  }
+  const segMinMinorSubs = (majors, desired) => {
+    if (!desired || majors.length < 2) return 0;
+    let maxSubs = Infinity;
+    for (let i = 1; i < majors.length; i++) {
+      const seg = Math.abs(majors[i] - majors[i - 1]);
+      const segPx = pxPerUnitX * seg;
+      const allowed = Math.floor(segPx / Math.max(1, minMinorPx)) - 1;
+      if (allowed < maxSubs) maxSubs = allowed;
+    }
+    return Math.max(0, Math.min(desired, isFinite(maxSubs) ? maxSubs : 0));
+  };
+  const minorSubsEff = segMinMinorSubs(major, minorSubdivisions);
+  const lineP1 = worldToScreen(xr[0], y);
+  const lineP2 = worldToScreen(xr[1], y);
+  const labels = renderLabel ? /* @__PURE__ */ jsx27("foreignObject", { x: margin.left, y: margin.top, width: innerWidth, height: 1, children: /* @__PURE__ */ jsx27("div", { style: { position: "relative", width: "100%", height: 0, pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222", userSelect: "none" }, children: major.map((x) => {
+    const node = renderLabel(x);
+    if (node == null) return null;
+    const p = worldToScreen(x, y);
+    const topAbs = labelsAbove ? p.y - labelOffset : p.y + labelOffset;
+    const transform = labelsAbove ? "translate(-50%, -100%)" : "translate(-50%, 0)";
+    return /* @__PURE__ */ jsx27("div", { style: { position: "absolute", left: p.x - margin.left, top: topAbs - margin.top, transform, pointerEvents: "auto" }, children: node }, `nl-xl-${x}`);
+  }) }) }) : null;
+  return /* @__PURE__ */ jsxs7("g", { clipPath: `url(#${clipPathId})`, stroke: color, strokeWidth, shapeRendering: "crispEdges", vectorEffect: "non-scaling-stroke", children: [
+    /* @__PURE__ */ jsx27("line", { x1: lineP1.x, y1: lineP1.y, x2: lineP2.x, y2: lineP2.y }),
+    major.map((x) => {
+      const p = worldToScreen(x, y);
+      const y0 = p.y - tickSize / 2;
+      const y1 = p.y + tickSize / 2;
+      return /* @__PURE__ */ jsx27("line", { x1: p.x, y1: y0, x2: p.x, y2: y1 }, `nl-t-${x}`);
+    }),
+    minorSubsEff > 0 && major.length > 1 && major.flatMap((xv, i) => {
+      if (i === major.length - 1) return [];
+      const next = major[i + 1];
+      const dt = (next - xv) / (minorSubsEff + 1);
+      const nodes = [];
+      for (let j = 1; j <= minorSubsEff; j++) {
+        const x = xv + j * dt;
+        const p = worldToScreen(x, y);
+        const y0 = p.y - minorTickSize / 2;
+        const y1 = p.y + minorTickSize / 2;
+        nodes.push(/* @__PURE__ */ jsx27("line", { x1: p.x, y1: y0, x2: p.x, y2: y1 }, `nl-tm-${i}-${j}`));
+      }
+      return nodes;
+    }),
+    labels
+  ] });
+}
+
+// src/Legend2D.tsx
+import { jsx as jsx28, jsxs as jsxs8 } from "react/jsx-runtime";
 function Legend2D({ items, position = "top-right", padding = 8, bg = "rgba(255,255,255,0.9)", opacity = 1 }) {
   const { margin, innerWidth, innerHeight } = usePlot();
   const x0 = margin.left;
@@ -1587,24 +1669,24 @@ function Legend2D({ items, position = "top-right", padding = 8, bg = "rgba(255,2
   const top = position.startsWith("top") ? y0 + padding : y0 + height - padding;
   const left = isTR || isBR ? x0 + width - padding : x0 + padding;
   const align = isTR || isBR ? "right" : "left";
-  return /* @__PURE__ */ jsx27("foreignObject", { x: margin.left, y: margin.top, width: innerWidth, height: innerHeight, opacity, children: /* @__PURE__ */ jsx27("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12 }, children: /* @__PURE__ */ jsx27("div", { style: { position: "absolute", left: left - margin.left, top: top - margin.top, transform: `translate(${align === "right" ? "-100%" : "0"}, ${position.startsWith("top") ? "0" : "-100%"})`, background: bg, border: "1px solid #e5e7eb", borderRadius: 6, padding: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }, children: items.map((it, i) => /* @__PURE__ */ jsxs7("div", { style: { display: "flex", alignItems: "center", gap: 8, margin: "4px 0", whiteSpace: "nowrap" }, children: [
-    it.marker ?? /* @__PURE__ */ jsx27("svg", { width: 18, height: 10, style: { flex: "0 0 auto" }, children: /* @__PURE__ */ jsx27("line", { x1: 0, y1: 5, x2: 18, y2: 5, stroke: it.color ?? "#111", strokeWidth: 2, strokeDasharray: it.strokeDasharray }) }),
-    /* @__PURE__ */ jsx27("div", { style: { pointerEvents: "auto" }, children: it.label })
+  return /* @__PURE__ */ jsx28("foreignObject", { x: margin.left, y: margin.top, width: innerWidth, height: innerHeight, opacity, children: /* @__PURE__ */ jsx28("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12 }, children: /* @__PURE__ */ jsx28("div", { style: { position: "absolute", left: left - margin.left, top: top - margin.top, transform: `translate(${align === "right" ? "-100%" : "0"}, ${position.startsWith("top") ? "0" : "-100%"})`, background: bg, border: "1px solid #e5e7eb", borderRadius: 6, padding: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }, children: items.map((it, i) => /* @__PURE__ */ jsxs8("div", { style: { display: "flex", alignItems: "center", gap: 8, margin: "4px 0", whiteSpace: "nowrap" }, children: [
+    it.marker ?? /* @__PURE__ */ jsx28("svg", { width: 18, height: 10, style: { flex: "0 0 auto" }, children: /* @__PURE__ */ jsx28("line", { x1: 0, y1: 5, x2: 18, y2: 5, stroke: it.color ?? "#111", strokeWidth: 2, strokeDasharray: it.strokeDasharray }) }),
+    /* @__PURE__ */ jsx28("div", { style: { pointerEvents: "auto" }, children: it.label })
   ] }, i)) }) }) });
 }
 
 // src/Title2D.tsx
-import { jsx as jsx28 } from "react/jsx-runtime";
+import { jsx as jsx29 } from "react/jsx-runtime";
 function Title2D({ children, align = "center", offsetY = 2 }) {
   const { margin, innerWidth } = usePlot();
   const x = align === "left" ? margin.left + 4 : align === "right" ? margin.left + innerWidth - 4 : margin.left + innerWidth / 2;
   const transform = align === "left" ? "translate(0, 0)" : align === "right" ? "translate(-100%, 0)" : "translate(-50%, 0)";
-  return /* @__PURE__ */ jsx28("foreignObject", { x: margin.left, y: 0, width: innerWidth, height: margin.top, children: /* @__PURE__ */ jsx28("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif" }, children: /* @__PURE__ */ jsx28("div", { style: { position: "absolute", left: x - margin.left, top: offsetY, transform, fontSize: 14, fontWeight: 600 }, children }) }) });
+  return /* @__PURE__ */ jsx29("foreignObject", { x: margin.left, y: 0, width: innerWidth, height: margin.top, children: /* @__PURE__ */ jsx29("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif" }, children: /* @__PURE__ */ jsx29("div", { style: { position: "absolute", left: x - margin.left, top: offsetY, transform, fontSize: 14, fontWeight: 600 }, children }) }) });
 }
 
 // src/LinearGradient2D.tsx
 import React14 from "react";
-import { jsx as jsx29, jsxs as jsxs8 } from "react/jsx-runtime";
+import { jsx as jsx30, jsxs as jsxs9 } from "react/jsx-runtime";
 function LinearGradient2D({ stops, x1, y1, x2, y2, x, y, width, height, opacity = 1, children, overlay, space = "world", anchor = "mask", reveal = "fill" }) {
   const { margin, innerWidth, innerHeight, xRange, yRange, worldToScreen, clipPathId } = usePlot();
   const idBase = React14.useId ? React14.useId() : Math.random().toString(36).slice(2);
@@ -1693,23 +1775,23 @@ function LinearGradient2D({ stops, x1, y1, x2, y2, x, y, width, height, opacity 
     if (Object.prototype.hasOwnProperty.call(props, "clip")) extra.clip = false;
     return React14.cloneElement(node, extra, clonedChildren);
   }
-  return /* @__PURE__ */ jsxs8("g", { children: [
-    /* @__PURE__ */ jsx29("g", { ref: measureRef, style: { opacity: 0, pointerEvents: "none" }, children }),
-    /* @__PURE__ */ jsxs8("defs", { children: [
-      /* @__PURE__ */ jsx29("linearGradient", { id: gradId, x1: gx1, y1: gy1, x2: gx2, y2: gy2, gradientUnits: "userSpaceOnUse", children: stops.map((s, i) => /* @__PURE__ */ jsx29("stop", { offset: typeof s.offset === "number" ? String(s.offset) : s.offset, stopColor: s.color, stopOpacity: s.opacity ?? 1 }, i)) }),
-      /* @__PURE__ */ jsxs8("mask", { id: maskId, maskUnits: "userSpaceOnUse", children: [
-        /* @__PURE__ */ jsx29("rect", { x: sx, y: sy, width: sw, height: sh, fill: "#000" }),
-        /* @__PURE__ */ jsx29("g", { children: React14.Children.map(children, toMask) })
+  return /* @__PURE__ */ jsxs9("g", { children: [
+    /* @__PURE__ */ jsx30("g", { ref: measureRef, style: { opacity: 0, pointerEvents: "none" }, children }),
+    /* @__PURE__ */ jsxs9("defs", { children: [
+      /* @__PURE__ */ jsx30("linearGradient", { id: gradId, x1: gx1, y1: gy1, x2: gx2, y2: gy2, gradientUnits: "userSpaceOnUse", children: stops.map((s, i) => /* @__PURE__ */ jsx30("stop", { offset: typeof s.offset === "number" ? String(s.offset) : s.offset, stopColor: s.color, stopOpacity: s.opacity ?? 1 }, i)) }),
+      /* @__PURE__ */ jsxs9("mask", { id: maskId, maskUnits: "userSpaceOnUse", children: [
+        /* @__PURE__ */ jsx30("rect", { x: sx, y: sy, width: sw, height: sh, fill: "#000" }),
+        /* @__PURE__ */ jsx30("g", { children: React14.Children.map(children, toMask) })
       ] })
     ] }),
-    /* @__PURE__ */ jsx29("rect", { x: sx, y: sy, width: sw, height: sh, fill: `url(#${gradId})`, mask: `url(#${maskId})`, opacity }),
-    overlay ? /* @__PURE__ */ jsx29("g", { children: overlay }) : null
+    /* @__PURE__ */ jsx30("rect", { x: sx, y: sy, width: sw, height: sh, fill: `url(#${gradId})`, mask: `url(#${maskId})`, opacity }),
+    overlay ? /* @__PURE__ */ jsx30("g", { children: overlay }) : null
   ] });
 }
 
 // src/RadialGradient2D.tsx
 import React15 from "react";
-import { jsx as jsx30, jsxs as jsxs9 } from "react/jsx-runtime";
+import { jsx as jsx31, jsxs as jsxs10 } from "react/jsx-runtime";
 function makeToMask(revealMode) {
   function toMask(node) {
     if (!React15.isValidElement(node)) return node;
@@ -1815,23 +1897,23 @@ function RadialGradient2D({ stops, cx, cy, r, fx, fy, x, y, width, height, opaci
     fpx = cpx;
     fpy = cpy;
   }
-  return /* @__PURE__ */ jsxs9("g", { clipPath: `url(#${clipPathId})`, children: [
-    /* @__PURE__ */ jsx30("g", { ref: measureRef, style: { opacity: 0, pointerEvents: "none" }, children }),
-    /* @__PURE__ */ jsxs9("defs", { children: [
-      /* @__PURE__ */ jsx30("radialGradient", { id: gradId, cx: cpx, cy: cpy, r: rPx, fx: fpx, fy: fpy, gradientUnits: "userSpaceOnUse", children: stops.map((s, i) => /* @__PURE__ */ jsx30("stop", { offset: typeof s.offset === "number" ? String(s.offset) : s.offset, stopColor: s.color, stopOpacity: s.opacity ?? 1 }, i)) }),
-      /* @__PURE__ */ jsxs9("mask", { id: maskId, maskUnits: "userSpaceOnUse", children: [
-        /* @__PURE__ */ jsx30("rect", { x: sx, y: sy, width: sw, height: sh, fill: "#000" }),
-        /* @__PURE__ */ jsx30("g", { children: React15.Children.map(children, makeToMask(reveal)) })
+  return /* @__PURE__ */ jsxs10("g", { clipPath: `url(#${clipPathId})`, children: [
+    /* @__PURE__ */ jsx31("g", { ref: measureRef, style: { opacity: 0, pointerEvents: "none" }, children }),
+    /* @__PURE__ */ jsxs10("defs", { children: [
+      /* @__PURE__ */ jsx31("radialGradient", { id: gradId, cx: cpx, cy: cpy, r: rPx, fx: fpx, fy: fpy, gradientUnits: "userSpaceOnUse", children: stops.map((s, i) => /* @__PURE__ */ jsx31("stop", { offset: typeof s.offset === "number" ? String(s.offset) : s.offset, stopColor: s.color, stopOpacity: s.opacity ?? 1 }, i)) }),
+      /* @__PURE__ */ jsxs10("mask", { id: maskId, maskUnits: "userSpaceOnUse", children: [
+        /* @__PURE__ */ jsx31("rect", { x: sx, y: sy, width: sw, height: sh, fill: "#000" }),
+        /* @__PURE__ */ jsx31("g", { children: React15.Children.map(children, makeToMask(reveal)) })
       ] })
     ] }),
-    /* @__PURE__ */ jsx30("rect", { x: sx, y: sy, width: sw, height: sh, fill: `url(#${gradId})`, mask: `url(#${maskId})`, opacity }),
-    overlay ? /* @__PURE__ */ jsx30("g", { children: overlay }) : null
+    /* @__PURE__ */ jsx31("rect", { x: sx, y: sy, width: sw, height: sh, fill: `url(#${gradId})`, mask: `url(#${maskId})`, opacity }),
+    overlay ? /* @__PURE__ */ jsx31("g", { children: overlay }) : null
   ] });
 }
 
 // src/Image2D.tsx
 import React16 from "react";
-import { jsx as jsx31, jsxs as jsxs10 } from "react/jsx-runtime";
+import { jsx as jsx32, jsxs as jsxs11 } from "react/jsx-runtime";
 function toMaskFactory(revealMode) {
   function toMask(node) {
     if (!React16.isValidElement(node)) return node;
@@ -1923,14 +2005,14 @@ function Image2D({ href, x, y, width, height, preserveAspectRatio = "xMidYMid me
       ih = imageHeight;
     }
   }
-  return /* @__PURE__ */ jsxs10("g", { clipPath: `url(#${clipPathId})`, children: [
-    /* @__PURE__ */ jsx31("g", { ref: measureRef, style: { opacity: 0, pointerEvents: "none" }, children }),
-    /* @__PURE__ */ jsx31("defs", { children: /* @__PURE__ */ jsxs10("mask", { id: maskId, maskUnits: "userSpaceOnUse", children: [
-      /* @__PURE__ */ jsx31("rect", { x: sx, y: sy, width: sw, height: sh, fill: "#000" }),
-      /* @__PURE__ */ jsx31("g", { children: React16.Children.map(children, toMaskFactory(reveal)) })
+  return /* @__PURE__ */ jsxs11("g", { clipPath: `url(#${clipPathId})`, children: [
+    /* @__PURE__ */ jsx32("g", { ref: measureRef, style: { opacity: 0, pointerEvents: "none" }, children }),
+    /* @__PURE__ */ jsx32("defs", { children: /* @__PURE__ */ jsxs11("mask", { id: maskId, maskUnits: "userSpaceOnUse", children: [
+      /* @__PURE__ */ jsx32("rect", { x: sx, y: sy, width: sw, height: sh, fill: "#000" }),
+      /* @__PURE__ */ jsx32("g", { children: React16.Children.map(children, toMaskFactory(reveal)) })
     ] }) }),
-    /* @__PURE__ */ jsx31("image", { href, x: ix, y: iy, width: iw, height: ih, preserveAspectRatio, opacity, mask: `url(#${maskId})`, crossOrigin }),
-    overlay ? /* @__PURE__ */ jsx31("g", { children: overlay }) : null
+    /* @__PURE__ */ jsx32("image", { href, x: ix, y: iy, width: iw, height: ih, preserveAspectRatio, opacity, mask: `url(#${maskId})`, crossOrigin }),
+    overlay ? /* @__PURE__ */ jsx32("g", { children: overlay }) : null
   ] });
 }
 
@@ -1949,7 +2031,7 @@ var ThreeContext = React17.createContext({
 var useThree = () => React17.useContext(ThreeContext);
 
 // src/Plot3D.tsx
-import { jsx as jsx32, jsxs as jsxs11 } from "react/jsx-runtime";
+import { jsx as jsx33, jsxs as jsxs12 } from "react/jsx-runtime";
 function Plot3D({
   width,
   height,
@@ -2048,10 +2130,10 @@ function Plot3D({
     renderer: renderer3d,
     htmlOverlay: overlayEl
   }), [three, scene, camera3d, renderer3d, overlayEl]);
-  return /* @__PURE__ */ jsxs11("div", { className, style: { position: "relative", width, height, overscrollBehavior: "contain", touchAction: "none", ...style }, children: [
-    /* @__PURE__ */ jsx32("div", { ref: containerRef, style: { position: "absolute", inset: 0 } }),
-    /* @__PURE__ */ jsx32(ThreeContext.Provider, { value: ctxValue, children }),
-    /* @__PURE__ */ jsx32("div", { ref: setOverlayEl, style: { position: "absolute", inset: 0, pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222" } })
+  return /* @__PURE__ */ jsxs12("div", { className, style: { position: "relative", width, height, overscrollBehavior: "contain", touchAction: "none", ...style }, children: [
+    /* @__PURE__ */ jsx33("div", { ref: containerRef, style: { position: "absolute", inset: 0 } }),
+    /* @__PURE__ */ jsx33(ThreeContext.Provider, { value: ctxValue, children }),
+    /* @__PURE__ */ jsx33("div", { ref: setOverlayEl, style: { position: "absolute", inset: 0, pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222" } })
   ] });
 }
 
@@ -2326,7 +2408,7 @@ function Sphere3D({ radius = 0.6, widthSegments = 32, heightSegments = 16, posit
 
 // src/Label3D.tsx
 import React24 from "react";
-import { jsx as jsx33 } from "react/jsx-runtime";
+import { jsx as jsx34 } from "react/jsx-runtime";
 function Label3D({ position, children, align = "left", vAlign = "top", dx = 0, dy = 0, className, style }) {
   const { THREE, camera, renderer, htmlOverlay } = useThree();
   const elRef = React24.useRef(null);
@@ -2357,11 +2439,11 @@ function Label3D({ position, children, align = "left", vAlign = "top", dx = 0, d
     };
   }, [THREE, camera, renderer, htmlOverlay, position == null ? void 0 : position[0], position == null ? void 0 : position[1], position == null ? void 0 : position[2], align, vAlign, dx, dy]);
   if (!htmlOverlay) return null;
-  return /* @__PURE__ */ jsx33("div", { ref: elRef, className, style: { position: "absolute", pointerEvents: "none", ...style }, children });
+  return /* @__PURE__ */ jsx34("div", { ref: elRef, className, style: { position: "absolute", pointerEvents: "none", ...style }, children });
 }
 
 // src/Legend3D.tsx
-import { jsx as jsx34, jsxs as jsxs12 } from "react/jsx-runtime";
+import { jsx as jsx35, jsxs as jsxs13 } from "react/jsx-runtime";
 function Legend3D({ items, position = "top-right", bg = "rgba(255,255,255,0.92)", padding = 8 }) {
   const { htmlOverlay } = useThree();
   if (!htmlOverlay) return null;
@@ -2382,9 +2464,9 @@ function Legend3D({ items, position = "top-right", bg = "rgba(255,255,255,0.92)"
     pointerEvents: "none",
     fontSize: 12
   };
-  return /* @__PURE__ */ jsx34("div", { style, children: items.map((it, i) => /* @__PURE__ */ jsxs12("div", { style: { display: "flex", alignItems: "center", gap: 8, margin: "4px 0", whiteSpace: "nowrap" }, children: [
-    it.marker ?? /* @__PURE__ */ jsx34("svg", { width: 18, height: 10, style: { flex: "0 0 auto" }, children: /* @__PURE__ */ jsx34("line", { x1: 0, y1: 5, x2: 18, y2: 5, stroke: it.color ?? "#111", strokeWidth: 2 }) }),
-    /* @__PURE__ */ jsx34("div", { children: it.label })
+  return /* @__PURE__ */ jsx35("div", { style, children: items.map((it, i) => /* @__PURE__ */ jsxs13("div", { style: { display: "flex", alignItems: "center", gap: 8, margin: "4px 0", whiteSpace: "nowrap" }, children: [
+    it.marker ?? /* @__PURE__ */ jsx35("svg", { width: 18, height: 10, style: { flex: "0 0 auto" }, children: /* @__PURE__ */ jsx35("line", { x1: 0, y1: 5, x2: 18, y2: 5, stroke: it.color ?? "#111", strokeWidth: 2 }) }),
+    /* @__PURE__ */ jsx35("div", { children: it.label })
   ] }, i)) });
 }
 
@@ -2835,7 +2917,7 @@ function useAnimation(opts = {}) {
 
 // src/Group3D.tsx
 import React32 from "react";
-import { jsx as jsx35 } from "react/jsx-runtime";
+import { jsx as jsx36 } from "react/jsx-runtime";
 function Group3D({ children, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1] }) {
   const { THREE, scene } = useThree();
   const parent = useThreeParent();
@@ -2867,7 +2949,7 @@ function Group3D({ children, position = [0, 0, 0], rotation = [0, 0, 0], scale =
     (_a = groupRef.current) == null ? void 0 : _a.scale.set(...scale);
   }, [scale == null ? void 0 : scale[0], scale == null ? void 0 : scale[1], scale == null ? void 0 : scale[2]]);
   if (!groupRef.current || !ready) return null;
-  return /* @__PURE__ */ jsx35(ThreeParentContext.Provider, { value: groupRef.current, children });
+  return /* @__PURE__ */ jsx36(ThreeParentContext.Provider, { value: groupRef.current, children });
 }
 
 // src/easing.ts
@@ -2992,7 +3074,7 @@ function useTween(options = {}) {
 
 // src/Animate2D.tsx
 import React33 from "react";
-import { jsx as jsx36 } from "react/jsx-runtime";
+import { jsx as jsx37 } from "react/jsx-runtime";
 function lerp2(a, b, t) {
   return a + (b - a) * t;
 }
@@ -3114,12 +3196,12 @@ function Animate2D({ children, type = "transform", from, to, duration = 600, del
   }
   const clipProps = plot ? { clipPath: `url(#${plot.clipPathId})` } : {};
   const initialOpacity = type === "appear" ? 0 : void 0;
-  return /* @__PURE__ */ jsx36("g", { ref: outerRef, opacity: initialOpacity, ...clipProps, children: worldGroupTransform ? /* @__PURE__ */ jsx36("g", { transform: worldGroupTransform, children }) : children });
+  return /* @__PURE__ */ jsx37("g", { ref: outerRef, opacity: initialOpacity, ...clipProps, children: worldGroupTransform ? /* @__PURE__ */ jsx37("g", { transform: worldGroupTransform, children }) : children });
 }
 
 // src/Animate3D.tsx
 import React34 from "react";
-import { jsx as jsx37 } from "react/jsx-runtime";
+import { jsx as jsx38 } from "react/jsx-runtime";
 function lerp3(a, b, t) {
   return a + (b - a) * t;
 }
@@ -3428,7 +3510,7 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
     };
   }, [finalizeMaterials, stop]);
   if (!groupRef.current || !ready) return null;
-  return /* @__PURE__ */ jsx37(ThreeParentContext.Provider, { value: groupRef.current, children });
+  return /* @__PURE__ */ jsx38(ThreeParentContext.Provider, { value: groupRef.current, children });
 }
 export {
   AngleMarker,
@@ -3459,6 +3541,7 @@ export {
   Line,
   LinearGradient2D,
   NormalLine,
+  NumberLine,
   Parametric2D,
   ParametricSurface3D,
   Plot2D,

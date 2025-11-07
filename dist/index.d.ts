@@ -388,6 +388,38 @@ type Crosshair2DProps = {
 };
 declare function Crosshair2D({ color, strokeWidth, showLabels, format }: Crosshair2DProps): react_jsx_runtime.JSX.Element;
 
+type NumberLineProps = {
+    /** Horizontal extent of the number line (defaults to plot xRange) */
+    xRange?: [number, number];
+    /** World Y coordinate where the number line is drawn (defaults to 0) */
+    y?: number;
+    /** Explicit major tick values. If provided, overrides approxTicks/delta logic. */
+    ticks?: number[];
+    /** Desired approx count of major ticks when ticks not provided. Default 9. */
+    approxTicks?: number;
+    /** Fixed delta (world units) between consecutive major ticks. Optional. */
+    delta?: number;
+    /** Count of minor subdivisions between consecutive majors. Default 0 (none). */
+    minorSubdivisions?: number;
+    /** Minimum pixel spacing for minor ticks; reduces effective subdivisions when too dense. Default 14. */
+    minMinorPx?: number;
+    /** Color of the line and ticks. */
+    color?: string;
+    /** Stroke width of the line and ticks. */
+    strokeWidth?: number;
+    /** Major tick size in pixels. Default 8. */
+    tickSize?: number;
+    /** Minor tick size in pixels. Default 5. */
+    minorTickSize?: number;
+    /** Optional label renderer for each major tick. Return null to hide a label. */
+    renderLabel?: (x: number) => React.ReactNode | null;
+    /** Pixel offset for labels from the line (positive places below by default transform). Default 8. */
+    labelOffset?: number;
+    /** Place labels above (true) or below (false) the line. Default false (below). */
+    labelsAbove?: boolean;
+};
+declare function NumberLine({ xRange, y, ticks, approxTicks, delta, minorSubdivisions, minMinorPx, color, strokeWidth, tickSize, minorTickSize, renderLabel, labelOffset, labelsAbove, }: NumberLineProps): react_jsx_runtime.JSX.Element;
+
 type LegendItem = {
     label: React.ReactNode;
     color?: string;
@@ -730,4 +762,4 @@ type Animate3DProps = {
 };
 declare function Animate3D({ children, type, from, to, duration, delay, easing, autoplay, loop, yoyo, replayKey }: Animate3DProps): react_jsx_runtime.JSX.Element;
 
-export { AngleMarker, Animate2D, Animate3D, Arc, Area2D, Axes2D, Axes3D, Bezier2D, Box3D, Circle, Cone3D, Contour2D, Crosshair2D, Cylinder3D, DistanceMarker, type EasingFn, type EasingName, Function2D, Grid3D, Group3D, Heatmap2D, Image2D, Implicit2D, Label, Label3D, Legend2D, Legend3D, Line, LinearGradient2D, NormalLine, Parametric2D, ParametricSurface3D, Plot2D, Plot3D, Point2D, PolarFunction2D, Polygon2D, Polyline2D, RadialGradient2D, Ray2D, RiemannSum, Scatter2D, Scatter3D, Sphere3D, Surface3D, TangentLine, Title2D, Torus3D, Vector2D, VectorField2D, easing, getEasing, useAnimation, useTween };
+export { AngleMarker, Animate2D, Animate3D, Arc, Area2D, Axes2D, Axes3D, Bezier2D, Box3D, Circle, Cone3D, Contour2D, Crosshair2D, Cylinder3D, DistanceMarker, type EasingFn, type EasingName, Function2D, Grid3D, Group3D, Heatmap2D, Image2D, Implicit2D, Label, Label3D, Legend2D, Legend3D, Line, LinearGradient2D, NormalLine, NumberLine, Parametric2D, ParametricSurface3D, Plot2D, Plot3D, Point2D, PolarFunction2D, Polygon2D, Polyline2D, RadialGradient2D, Ray2D, RiemannSum, Scatter2D, Scatter3D, Sphere3D, Surface3D, TangentLine, Title2D, Torus3D, Vector2D, VectorField2D, easing, getEasing, useAnimation, useTween };

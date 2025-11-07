@@ -24,6 +24,7 @@ export { Implicit2D } from "./Implicit2D";
 export { Contour2D } from "./Contour2D";
 export { PolarFunction2D } from "./PolarFunction2D";
 export { Crosshair2D } from "./Crosshair2D";
+export { NumberLine } from "./NumberLine";
 export { Legend2D } from "./Legend2D";
 export { Title2D } from "./Title2D";
 export { LinearGradient2D } from "./LinearGradient2D";

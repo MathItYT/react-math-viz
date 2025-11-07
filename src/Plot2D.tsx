@@ -111,9 +111,9 @@ export function Plot2D({
         const pts = Array.from(pointersRef.current.values());
         const p0 = pts[0], p1 = pts[1];
         const sxCss = (p0.clientX + p1.clientX) / 2 - rect.left;
-        const syCss = (p0.clientX + p1.clientX) / 2 - rect.left; // corrected below
+        const syCss = (p0.clientY + p1.clientY) / 2 - rect.top;
         const sx = sxCss * scaleX;
-        const sy = ((p0.clientY + p1.clientY) / 2 - rect.top) * scaleY;
+        const sy = syCss * scaleY;
         const w = screenToWorld(sx, sy);
         const dx = (p0.clientX - p1.clientX);
         const dy = (p0.clientY - p1.clientY);

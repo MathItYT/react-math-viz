@@ -1,6 +1,15 @@
 import React from "react";
 import { usePlot } from "./context";
 
+// Nota sobre coordenadas:
+// `mouse.sx` y `mouse.sy` ya están compensadas por cualquier escala CSS externa
+// (ver lógica en Plot2D donde se aplica factor width/rect.width). Por eso aquí
+// podemos usarlas directamente como coordenadas "lógicas" del SVG sin aplicar
+// ninguna corrección adicional. Si en el futuro se reemplaza la estrategia de
+// escalado (por ejemplo dimensionando realmente el SVG en vez de usar transform),
+// este componente no necesita cambios porque consumirá los valores normalizados
+// que Plot2D le entrega.
+
 export type Crosshair2DProps = {
   color?: string;
   strokeWidth?: number;

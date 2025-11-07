@@ -81,7 +81,9 @@ export function Plot2D({
     startY: number;
     startXRange: Range;
     startYRange: Range;
-  }>({ active: false, startX: 0, startY: 0, startXRange: [0, 1], startYRange: [0, 1] });
+    startSX: number;
+    startSY: number;
+  }>({ active: false, startX: 0, startY: 0, startXRange: [0, 1], startYRange: [0, 1], startSX: 0, startSY: 0 });
 
   const pxPerUnitX = innerWidth > 0 ? innerWidth / Math.max(1e-12, (curXRange[1] - curXRange[0])) : 1;
   const pxPerUnitY = innerHeight > 0 ? innerHeight / Math.max(1e-12, (curYRange[1] - curYRange[0])) : 1;
@@ -100,20 +102,29 @@ export function Plot2D({
     try { (target as any).setPointerCapture?.(e.pointerId); } catch {}
     // Track pointer for potential pinch
     pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    const svgEl = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
+    // Helper para convertir coordenadas de ventana a coordenadas del SVG usando la matriz actual (robusto ante transform CSS)
+    const clientToSvg = (clientX:number, clientY:number) => {
+      if (!svgEl) return { x: clientX, y: clientY };
+      const pt = svgEl.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const ctm = svgEl.getScreenCTM();
+      if (!ctm) return { x: clientX, y: clientY };
+      const inv = ctm.inverse();
+      const svgP = pt.matrixTransform(inv);
+      return { x: svgP.x, y: svgP.y };
+    };
     if (pinchZoomable && pointersRef.current.size >= 2) {
       // Initialize pinch state
-      const svgEl = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
       if (svgEl) {
-        const rect = svgEl.getBoundingClientRect();
-        // Compensate CSS scaling (e.g. transform:scale) if wrapper is visually resized
-        const scaleX = rect.width > 0 ? width / rect.width : 1;
-        const scaleY = rect.height > 0 ? height / rect.height : 1;
         const pts = Array.from(pointersRef.current.values());
         const p0 = pts[0], p1 = pts[1];
-        const sxCss = (p0.clientX + p1.clientX) / 2 - rect.left;
-        const syCss = (p0.clientY + p1.clientY) / 2 - rect.top;
-        const sx = sxCss * scaleX;
-        const sy = syCss * scaleY;
+        const midX = (p0.clientX + p1.clientX) / 2;
+        const midY = (p0.clientY + p1.clientY) / 2;
+        const svgMid = clientToSvg(midX, midY);
+        const sx = svgMid.x;
+        const sy = svgMid.y;
         const w = screenToWorld(sx, sy);
         const dx = (p0.clientX - p1.clientX);
         const dy = (p0.clientY - p1.clientY);
@@ -130,6 +141,9 @@ export function Plot2D({
         startY: e.clientY,
         startXRange: curXRange,
         startYRange: curYRange,
+        // Guardamos también coordenadas SVG iniciales para pan correcto bajo transformaciones
+        startSX: (() => { const p = svgEl ? (() => { const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const ctm = svgEl.getScreenCTM(); if (!ctm) return pt; return pt.matrixTransform(ctm.inverse()); })() : { x: e.clientX, y: e.clientY }; return p.x; })(),
+        startSY: (() => { const p = svgEl ? (() => { const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const ctm = svgEl.getScreenCTM(); if (!ctm) return pt; return pt.matrixTransform(ctm.inverse()); })() : { x: e.clientX, y: e.clientY }; return p.y; })(),
       };
     }
   }, [pannable, curXRange, curYRange, pinchZoomable]);
@@ -138,11 +152,13 @@ export function Plot2D({
     // update mouse state always (compute immediately to avoid React event pooling issues)
     const svgEl = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
     if (svgEl) {
-      const rect = svgEl.getBoundingClientRect();
-      const scaleX = rect.width > 0 ? width / rect.width : 1;
-      const scaleY = rect.height > 0 ? height / rect.height : 1;
-      const sx = (e.clientX - rect.left) * scaleX;
-      const sy = (e.clientY - rect.top) * scaleY;
+      const pt = svgEl.createSVGPoint();
+      pt.x = e.clientX; pt.y = e.clientY;
+      const ctm = svgEl.getScreenCTM();
+      let svgP = { x: e.clientX, y: e.clientY };
+      if (ctm) svgP = pt.matrixTransform(ctm.inverse());
+      const sx = svgP.x;
+      const sy = svgP.y;
       const w = screenToWorld(sx, sy);
       setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
     }
@@ -150,17 +166,20 @@ export function Plot2D({
     if (pinchRef.current.active && pinchZoomable) {
       const svgEl2 = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
       if (svgEl2) {
-        const rect2 = svgEl2.getBoundingClientRect();
         if (pointersRef.current.has(e.pointerId)) {
           pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
         }
         if (pointersRef.current.size >= 2) {
           const pts = Array.from(pointersRef.current.values());
           const p0 = pts[0], p1 = pts[1];
-          const scaleX = rect2.width > 0 ? width / rect2.width : 1;
-          const scaleY = rect2.height > 0 ? height / rect2.height : 1;
-          const sx = ((p0.clientX + p1.clientX) / 2 - rect2.left) * scaleX;
-          const sy = ((p0.clientY + p1.clientY) / 2 - rect2.top) * scaleY;
+          const midX = (p0.clientX + p1.clientX) / 2;
+          const midY = (p0.clientY + p1.clientY) / 2;
+          const pt2 = svgEl2.createSVGPoint(); pt2.x = midX; pt2.y = midY;
+          const ctm2 = svgEl2.getScreenCTM();
+          let svgMid = { x: midX, y: midY };
+          if (ctm2) svgMid = pt2.matrixTransform(ctm2.inverse());
+          const sx = svgMid.x;
+          const sy = svgMid.y;
           const w = screenToWorld(sx, sy);
           const dx = (p0.clientX - p1.clientX);
           const dy = (p0.clientY - p1.clientY);
@@ -187,10 +206,20 @@ export function Plot2D({
       return;
     }
     if (!panState.current.active) return;
-    const dxPx = e.clientX - panState.current.startX;
-    const dyPx = e.clientY - panState.current.startY;
-    const dxWorld = (dxPx) / Math.max(1e-12, pxPerUnitX);
-    const dyWorld = -(dyPx) / Math.max(1e-12, pxPerUnitY);
+    const svgEl3 = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
+    let curSX = e.clientX, curSY = e.clientY;
+    if (svgEl3) {
+      const pt3 = svgEl3.createSVGPoint(); pt3.x = e.clientX; pt3.y = e.clientY;
+      const ctm3 = svgEl3.getScreenCTM();
+      if (ctm3) {
+        const svgP3 = pt3.matrixTransform(ctm3.inverse());
+        curSX = svgP3.x; curSY = svgP3.y;
+      }
+    }
+    const dxPxSvg = curSX - (panState.current as any).startSX;
+    const dyPxSvg = curSY - (panState.current as any).startSY;
+    const dxWorld = (dxPxSvg) / Math.max(1e-12, pxPerUnitX);
+    const dyWorld = -(dyPxSvg) / Math.max(1e-12, pxPerUnitY);
     const nx: Range = [
       panState.current.startXRange[0] - dxWorld,
       panState.current.startXRange[1] - dxWorld,

@@ -211,7 +211,7 @@ function Plot2D({
   });
   const [overlayEl, setOverlayEl] = import_react2.default.useState(null);
   const clipPathId = import_react2.default.useId ? import_react2.default.useId() : "clip-" + Math.random().toString(36).slice(2);
-  const panState = import_react2.default.useRef({ active: false, startX: 0, startY: 0, startXRange: [0, 1], startYRange: [0, 1], startSX: 0, startSY: 0 });
+  const panState = import_react2.default.useRef({ active: false, startX: 0, startY: 0, startXRange: [0, 1], startYRange: [0, 1], startSX: 0, startSY: 0, startMouseWorldX: 0, startMouseWorldY: 0 });
   const pxPerUnitX = innerWidth > 0 ? innerWidth / Math.max(1e-12, curXRange[1] - curXRange[0]) : 1;
   const pxPerUnitY = innerHeight > 0 ? innerHeight / Math.max(1e-12, curYRange[1] - curYRange[0]) : 1;
   const pointersRef = import_react2.default.useRef(/* @__PURE__ */ new Map());
@@ -285,8 +285,31 @@ function Plot2D({
             return pt.matrixTransform(ctm.inverse());
           })() : { x: e.clientX, y: e.clientY };
           return p.y;
+        })(),
+        startMouseWorldX: (() => {
+          const invP = (() => {
+            if (!svgEl) return { x: e.clientX, y: e.clientY };
+            const pt = svgEl.createSVGPoint();
+            pt.x = e.clientX;
+            pt.y = e.clientY;
+            const ctm = svgEl.getScreenCTM();
+            return ctm ? pt.matrixTransform(ctm.inverse()) : { x: e.clientX, y: e.clientY };
+          })();
+          return screenToWorld(invP.x, invP.y).x;
+        })(),
+        startMouseWorldY: (() => {
+          const invP = (() => {
+            if (!svgEl) return { x: e.clientX, y: e.clientY };
+            const pt = svgEl.createSVGPoint();
+            pt.x = e.clientX;
+            pt.y = e.clientY;
+            const ctm = svgEl.getScreenCTM();
+            return ctm ? pt.matrixTransform(ctm.inverse()) : { x: e.clientX, y: e.clientY };
+          })();
+          return screenToWorld(invP.x, invP.y).y;
         })()
       };
+      frozenLabelRef.current = { x: panState.current.startMouseWorldX, y: panState.current.startMouseWorldY };
     }
   }, [pannable, curXRange, curYRange, pinchZoomable]);
   const onPointerMove = import_react2.default.useCallback((e) => {
@@ -301,7 +324,11 @@ function Plot2D({
       const sx = svgP.x;
       const sy = svgP.y;
       const w = screenToWorld(sx, sy);
-      setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
+      if (panState.current.active && frozenLabelRef.current) {
+        setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
+      } else {
+        setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
+      }
     }
     if (pinchRef.current.active && pinchZoomable) {
       const svgEl2 = e.currentTarget.ownerSVGElement;
@@ -385,6 +412,7 @@ function Plot2D({
       pointersRef.current.delete(e.pointerId);
     }
     panState.current.active = false;
+    frozenLabelRef.current = null;
     if (pinchRef.current.active && pointersRef.current.size < 2) {
       pinchRef.current.active = false;
       pinchRef.current.lastCenter = null;
@@ -392,6 +420,7 @@ function Plot2D({
     }
   }, []);
   const [mouse, setMouse] = import_react2.default.useState({ sx: 0, sy: 0, x: 0, y: 0, inside: false });
+  const frozenLabelRef = import_react2.default.useRef(null);
   const onPointerLeaveArea = import_react2.default.useCallback((e) => {
     endPan(e);
     setMouse((m2) => ({ ...m2, inside: false }));

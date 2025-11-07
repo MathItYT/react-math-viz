@@ -83,7 +83,9 @@ export function Plot2D({
     startYRange: Range;
     startSX: number;
     startSY: number;
-  }>({ active: false, startX: 0, startY: 0, startXRange: [0, 1], startYRange: [0, 1], startSX: 0, startSY: 0 });
+    startMouseWorldX: number;
+    startMouseWorldY: number;
+  }>({ active: false, startX: 0, startY: 0, startXRange: [0, 1], startYRange: [0, 1], startSX: 0, startSY: 0, startMouseWorldX: 0, startMouseWorldY: 0 });
 
   const pxPerUnitX = innerWidth > 0 ? innerWidth / Math.max(1e-12, (curXRange[1] - curXRange[0])) : 1;
   const pxPerUnitY = innerHeight > 0 ? innerHeight / Math.max(1e-12, (curYRange[1] - curYRange[0])) : 1;
@@ -144,7 +146,10 @@ export function Plot2D({
         // Guardamos también coordenadas SVG iniciales para pan correcto bajo transformaciones
         startSX: (() => { const p = svgEl ? (() => { const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const ctm = svgEl.getScreenCTM(); if (!ctm) return pt; return pt.matrixTransform(ctm.inverse()); })() : { x: e.clientX, y: e.clientY }; return p.x; })(),
         startSY: (() => { const p = svgEl ? (() => { const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const ctm = svgEl.getScreenCTM(); if (!ctm) return pt; return pt.matrixTransform(ctm.inverse()); })() : { x: e.clientX, y: e.clientY }; return p.y; })(),
+        startMouseWorldX: (() => { const invP = (() => { if (!svgEl) return { x: e.clientX, y: e.clientY }; const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const ctm = svgEl.getScreenCTM(); return ctm ? pt.matrixTransform(ctm.inverse()) : { x: e.clientX, y: e.clientY }; })(); return screenToWorld(invP.x, invP.y).x; })(),
+        startMouseWorldY: (() => { const invP = (() => { if (!svgEl) return { x: e.clientX, y: e.clientY }; const pt = svgEl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const ctm = svgEl.getScreenCTM(); return ctm ? pt.matrixTransform(ctm.inverse()) : { x: e.clientX, y: e.clientY }; })(); return screenToWorld(invP.x, invP.y).y; })(),
       };
+      frozenLabelRef.current = { x: panState.current.startMouseWorldX, y: panState.current.startMouseWorldY };
     }
   }, [pannable, curXRange, curYRange, pinchZoomable]);
 
@@ -160,7 +165,11 @@ export function Plot2D({
       const sx = svgP.x;
       const sy = svgP.y;
       const w = screenToWorld(sx, sy);
-      setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
+      if (panState.current.active && frozenLabelRef.current) {
+        setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
+      } else {
+        setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
+      }
     }
     // Pinch handling (two fingers)
     if (pinchRef.current.active && pinchZoomable) {
@@ -240,6 +249,7 @@ export function Plot2D({
     }
     // End pan if it was active
     panState.current.active = false;
+    frozenLabelRef.current = null;
     // If pinch loses fingers, end pinch
     if (pinchRef.current.active && pointersRef.current.size < 2) {
       pinchRef.current.active = false;
@@ -250,6 +260,8 @@ export function Plot2D({
 
   // Mouse state for crosshair/tooltip
   const [mouse, setMouse] = React.useState<{ sx:number; sy:number; x:number; y:number; inside:boolean }>({ sx: 0, sy: 0, x: 0, y: 0, inside: false });
+  // Freeze label world coords during active pan so displayed numbers don't change while dragging
+  const frozenLabelRef = React.useRef<{ x:number; y:number } | null>(null);
 
   const onPointerLeaveArea = React.useCallback((e: React.PointerEvent<SVGRectElement>) => {
     endPan(e);

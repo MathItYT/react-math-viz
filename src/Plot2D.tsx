@@ -105,10 +105,15 @@ export function Plot2D({
       const svgEl = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
       if (svgEl) {
         const rect = svgEl.getBoundingClientRect();
+        // Compensate CSS scaling (e.g. transform:scale) if wrapper is visually resized
+        const scaleX = rect.width > 0 ? width / rect.width : 1;
+        const scaleY = rect.height > 0 ? height / rect.height : 1;
         const pts = Array.from(pointersRef.current.values());
         const p0 = pts[0], p1 = pts[1];
-        const sx = (p0.clientX + p1.clientX) / 2 - rect.left;
-        const sy = (p0.clientY + p1.clientY) / 2 - rect.top;
+        const sxCss = (p0.clientX + p1.clientX) / 2 - rect.left;
+        const syCss = (p0.clientX + p1.clientX) / 2 - rect.left; // corrected below
+        const sx = sxCss * scaleX;
+        const sy = ((p0.clientY + p1.clientY) / 2 - rect.top) * scaleY;
         const w = screenToWorld(sx, sy);
         const dx = (p0.clientX - p1.clientX);
         const dy = (p0.clientY - p1.clientY);
@@ -134,8 +139,10 @@ export function Plot2D({
     const svgEl = (e.currentTarget as any).ownerSVGElement as SVGSVGElement | null;
     if (svgEl) {
       const rect = svgEl.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
+      const scaleX = rect.width > 0 ? width / rect.width : 1;
+      const scaleY = rect.height > 0 ? height / rect.height : 1;
+      const sx = (e.clientX - rect.left) * scaleX;
+      const sy = (e.clientY - rect.top) * scaleY;
       const w = screenToWorld(sx, sy);
       setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
     }
@@ -150,8 +157,10 @@ export function Plot2D({
         if (pointersRef.current.size >= 2) {
           const pts = Array.from(pointersRef.current.values());
           const p0 = pts[0], p1 = pts[1];
-          const sx = (p0.clientX + p1.clientX) / 2 - rect2.left;
-          const sy = (p0.clientY + p1.clientY) / 2 - rect2.top;
+          const scaleX = rect2.width > 0 ? width / rect2.width : 1;
+          const scaleY = rect2.height > 0 ? height / rect2.height : 1;
+          const sx = ((p0.clientX + p1.clientX) / 2 - rect2.left) * scaleX;
+          const sy = ((p0.clientY + p1.clientY) / 2 - rect2.top) * scaleY;
           const w = screenToWorld(sx, sy);
           const dx = (p0.clientX - p1.clientX);
           const dy = (p0.clientY - p1.clientY);
@@ -231,8 +240,10 @@ export function Plot2D({
       const svg = svgRef.current;
       if (!svg) return;
       const rect = svg.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
+  const scaleX = rect.width > 0 ? width / rect.width : 1;
+  const scaleY = rect.height > 0 ? height / rect.height : 1;
+  const sx = (e.clientX - rect.left) * scaleX;
+  const sy = (e.clientY - rect.top) * scaleY;
       const w = screenToWorld(sx, sy);
       const zx = e.deltaY < 0 ? (1 / zoomSpeed) : zoomSpeed;
       const zy = zx; // future: independent zoom per axis

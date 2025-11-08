@@ -795,6 +795,8 @@ function Parametric2D({
     const { vx0, vx1, vy0, vy1 } = viewportRect || { vx0: -Infinity, vx1: Infinity, vy0: -Infinity, vy1: Infinity };
     let path = "";
     let hasOpen = false;
+    let lastInside = null;
+    let lastSp = null;
     for (let i = 0; i < (n || 2); i++) {
       const t = t0Eff + i * dt;
       const wx = x(t);
@@ -803,14 +805,25 @@ function Parametric2D({
       const sp = worldToScreen(wx, wy);
       if (inside) {
         if (!hasOpen) {
-          path += (path ? " " : "") + "M " + sp.x + " " + sp.y;
+          if (lastInside === false && lastSp) {
+            path += (path ? " " : "") + "M " + lastSp.x + " " + lastSp.y + " L " + sp.x + " " + sp.y;
+          } else {
+            path += (path ? " " : "") + "M " + sp.x + " " + sp.y;
+          }
           hasOpen = true;
         } else {
           path += " L " + sp.x + " " + sp.y;
         }
       } else {
-        hasOpen = false;
+        if (hasOpen && lastInside === true) {
+          path += " L " + sp.x + " " + sp.y;
+          hasOpen = false;
+        } else {
+          hasOpen = false;
+        }
       }
+      lastInside = inside;
+      lastSp = sp;
     }
     return path;
   }, [x, y, t0Eff, t1Eff, n, dt, worldToScreen, viewportRect]);

@@ -87,26 +87,47 @@ export function Parametric2D({
   const dt = (t1Eff - t0Eff) / (n - 1 || 1);
 
   const d = React.useMemo(() => {
-    // Build path with sub-segments only where curve is within the padded viewport rectangle
-    const { vx0, vx1, vy0, vy1 } = viewportRect || { vx0: -Infinity, vx1: Infinity, vy0: -Infinity, vy1: Infinity } as any;
+    // Build path ensuring boundary segments include both endpoints when crossing viewport.
+    // If a point is outside and the next is inside (or vice versa), include both in the path
+    // so the segment reaches the clip boundary cleanly.
+    const { vx0, vx1, vy0, vy1 } = (viewportRect || { vx0: -Infinity, vx1: Infinity, vy0: -Infinity, vy1: Infinity }) as any;
     let path = "";
     let hasOpen = false;
+    let lastInside: boolean | null = null;
+    let lastSp: { x: number; y: number } | null = null;
+
     for (let i = 0; i < (n || 2); i++) {
       const t = t0Eff + i * dt;
       const wx = x(t);
       const wy = y(t);
       const inside = wx >= vx0 && wx <= vx1 && wy >= vy0 && wy <= vy1;
       const sp = worldToScreen(wx, wy);
+
       if (inside) {
         if (!hasOpen) {
-          path += (path ? ' ' : '') + 'M ' + sp.x + ' ' + sp.y;
+          // If we are entering from outside and we have the previous point, start from it
+          if (lastInside === false && lastSp) {
+            path += (path ? ' ' : '') + 'M ' + lastSp.x + ' ' + lastSp.y + ' L ' + sp.x + ' ' + sp.y;
+          } else {
+            path += (path ? ' ' : '') + 'M ' + sp.x + ' ' + sp.y;
+          }
           hasOpen = true;
         } else {
           path += ' L ' + sp.x + ' ' + sp.y;
         }
       } else {
-        hasOpen = false;
+        // Current point is outside
+        if (hasOpen && lastInside === true) {
+          // Exiting to outside: include this outside point to complete the boundary segment, then close
+          path += ' L ' + sp.x + ' ' + sp.y;
+          hasOpen = false;
+        } else {
+          hasOpen = false;
+        }
       }
+
+      lastInside = inside;
+      lastSp = sp;
     }
     return path;
   }, [x, y, t0Eff, t1Eff, n, dt, worldToScreen, viewportRect]);

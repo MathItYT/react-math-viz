@@ -93,19 +93,31 @@ export function Parametric2D({
     const { vx0, vx1, vy0, vy1 } = (viewportRect || { vx0: -Infinity, vx1: Infinity, vy0: -Infinity, vy1: Infinity }) as any;
     let path = "";
     let hasOpen = false;
-    let lastInside: boolean | null = null;
-    let lastSp: { x: number; y: number } | null = null;
+  let lastInside: boolean | null = null;
+  let lastSp: { x: number; y: number } | null = null;
 
     for (let i = 0; i < (n || 2); i++) {
       const t = t0Eff + i * dt;
       const wx = x(t);
       const wy = y(t);
+      const valid = Number.isFinite(wx) && Number.isFinite(wy);
+
+      if (!valid) {
+        // Invalid sample -> do not draw; terminate any open subpath
+        if (hasOpen && lastInside === true) {
+          hasOpen = false;
+        }
+        lastInside = null;
+        lastSp = null;
+        continue;
+      }
+
       const inside = wx >= vx0 && wx <= vx1 && wy >= vy0 && wy <= vy1;
       const sp = worldToScreen(wx, wy);
 
       if (inside) {
         if (!hasOpen) {
-          // If we are entering from outside and we have the previous point, start from it
+          // If we are entering from outside and we have the previous valid point, start from it
           if (lastInside === false && lastSp) {
             path += (path ? ' ' : '') + 'M ' + lastSp.x + ' ' + lastSp.y + ' L ' + sp.x + ' ' + sp.y;
           } else {

@@ -801,6 +801,15 @@ function Parametric2D({
       const t = t0Eff + i * dt;
       const wx = x(t);
       const wy = y(t);
+      const valid = Number.isFinite(wx) && Number.isFinite(wy);
+      if (!valid) {
+        if (hasOpen && lastInside === true) {
+          hasOpen = false;
+        }
+        lastInside = null;
+        lastSp = null;
+        continue;
+      }
       const inside = wx >= vx0 && wx <= vx1 && wy >= vy0 && wy <= vy1;
       const sp = worldToScreen(wx, wy);
       if (inside) {

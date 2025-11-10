@@ -97,7 +97,6 @@ function Plot2D({
 }) {
   const wrapperRef = React2.useRef(null);
   const svgRef = React2.useRef(null);
-  const panJustEndedRef = React2.useRef(false);
   const m = {
     top: (margin == null ? void 0 : margin.top) ?? 20,
     right: (margin == null ? void 0 : margin.right) ?? 20,
@@ -116,239 +115,142 @@ function Plot2D({
   }, [yRange[0], yRange[1]]);
   const xMap = makeLinearMapper(curXRange[0], curXRange[1], 0, innerWidth);
   const yMap = makeLinearMapper(curYRange[0], curYRange[1], innerHeight, 0);
-  const worldToScreen = (x, y) => ({
-    x: m.left + xMap.f(x),
-    y: m.top + yMap.f(y)
-  });
-  const screenToWorld = (sx, sy) => ({
-    x: xMap.inv(sx - m.left),
-    y: yMap.inv(sy - m.top)
-  });
+  const worldToScreen = (x, y) => ({ x: m.left + xMap.f(x), y: m.top + yMap.f(y) });
+  const screenToWorld = (sx, sy) => ({ x: xMap.inv(sx - m.left), y: yMap.inv(sy - m.top) });
   const [overlayEl, setOverlayEl] = React2.useState(null);
   const clipPathId = React2.useId ? React2.useId() : "clip-" + Math.random().toString(36).slice(2);
-  const panState = React2.useRef({ active: false, startX: 0, startY: 0, startXRange: [0, 1], startYRange: [0, 1], startSX: 0, startSY: 0, startMouseWorldX: 0, startMouseWorldY: 0 });
+  const [mouse, setMouse] = React2.useState({ sx: 0, sy: 0, x: 0, y: 0, inside: false });
+  const frozenLabelRef = React2.useRef(null);
+  const interactionRef = React2.useRef({ mode: "idle", startXRange: [0, 1], startYRange: [0, 1], startSvgX: 0, startSvgY: 0, pinchStartDist: 0, pinchCenterWorld: null, pinchLastDist: 0 });
+  const pointers = React2.useRef(/* @__PURE__ */ new Map());
   const pxPerUnitX = innerWidth > 0 ? innerWidth / Math.max(1e-12, curXRange[1] - curXRange[0]) : 1;
   const pxPerUnitY = innerHeight > 0 ? innerHeight / Math.max(1e-12, curYRange[1] - curYRange[0]) : 1;
-  const pointersRef = React2.useRef(/* @__PURE__ */ new Map());
-  const pinchRef = React2.useRef({ active: false, lastDist: 0, lastCenter: null });
-  const onPointerDown = React2.useCallback((e) => {
-    var _a;
-    if (e.pointerType === "mouse") {
-      if (!pannable) return;
-      if (e.button !== 0) return;
-    }
-    const target = e.currentTarget;
-    try {
-      (_a = target.setPointerCapture) == null ? void 0 : _a.call(target, e.pointerId);
-    } catch {
-    }
-    pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
-    const svgEl = e.currentTarget.ownerSVGElement;
-    const clientToSvg = (clientX, clientY) => {
-      if (!svgEl) return { x: clientX, y: clientY };
-      const pt = svgEl.createSVGPoint();
-      pt.x = clientX;
-      pt.y = clientY;
-      const ctm = svgEl.getScreenCTM();
-      if (!ctm) return { x: clientX, y: clientY };
-      const inv = ctm.inverse();
-      const svgP = pt.matrixTransform(inv);
-      return { x: svgP.x, y: svgP.y };
-    };
-    if (pinchZoomable && pointersRef.current.size >= 2) {
-      if (svgEl) {
-        const pts = Array.from(pointersRef.current.values());
-        const p0 = pts[0], p1 = pts[1];
-        const midX = (p0.clientX + p1.clientX) / 2;
-        const midY = (p0.clientY + p1.clientY) / 2;
-        const svgMid = clientToSvg(midX, midY);
-        const sx = svgMid.x;
-        const sy = svgMid.y;
-        const w = screenToWorld(sx, sy);
-        const dx = p0.clientX - p1.clientX;
-        const dy = p0.clientY - p1.clientY;
-        const dist = Math.hypot(dx, dy);
-        pinchRef.current = { active: true, lastDist: Math.max(1e-6, dist), lastCenter: { sx, sy, x: w.x, y: w.y } };
-        panState.current.active = false;
-      }
-    } else if (pannable) {
-      panState.current = {
-        active: true,
-        startX: e.clientX,
-        startY: e.clientY,
-        startXRange: curXRange,
-        startYRange: curYRange,
-        // Guardamos también coordenadas SVG iniciales para pan correcto bajo transformaciones
-        startSX: (() => {
-          const p = svgEl ? (() => {
-            const pt = svgEl.createSVGPoint();
-            pt.x = e.clientX;
-            pt.y = e.clientY;
-            const ctm = svgEl.getScreenCTM();
-            if (!ctm) return pt;
-            return pt.matrixTransform(ctm.inverse());
-          })() : { x: e.clientX, y: e.clientY };
-          return p.x;
-        })(),
-        startSY: (() => {
-          const p = svgEl ? (() => {
-            const pt = svgEl.createSVGPoint();
-            pt.x = e.clientX;
-            pt.y = e.clientY;
-            const ctm = svgEl.getScreenCTM();
-            if (!ctm) return pt;
-            return pt.matrixTransform(ctm.inverse());
-          })() : { x: e.clientX, y: e.clientY };
-          return p.y;
-        })(),
-        startMouseWorldX: (() => {
-          const invP = (() => {
-            if (!svgEl) return { x: e.clientX, y: e.clientY };
-            const pt = svgEl.createSVGPoint();
-            pt.x = e.clientX;
-            pt.y = e.clientY;
-            const ctm = svgEl.getScreenCTM();
-            return ctm ? pt.matrixTransform(ctm.inverse()) : { x: e.clientX, y: e.clientY };
-          })();
-          return screenToWorld(invP.x, invP.y).x;
-        })(),
-        startMouseWorldY: (() => {
-          const invP = (() => {
-            if (!svgEl) return { x: e.clientX, y: e.clientY };
-            const pt = svgEl.createSVGPoint();
-            pt.x = e.clientX;
-            pt.y = e.clientY;
-            const ctm = svgEl.getScreenCTM();
-            return ctm ? pt.matrixTransform(ctm.inverse()) : { x: e.clientX, y: e.clientY };
-          })();
-          return screenToWorld(invP.x, invP.y).y;
-        })()
-      };
-      frozenLabelRef.current = { x: panState.current.startMouseWorldX, y: panState.current.startMouseWorldY };
-    }
-  }, [pannable, curXRange, curYRange, pinchZoomable]);
-  const onPointerMove = React2.useCallback((e) => {
-    const svgEl = e.currentTarget.ownerSVGElement;
-    if (svgEl) {
-      const pt = svgEl.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
-      const ctm = svgEl.getScreenCTM();
-      let svgP = { x: e.clientX, y: e.clientY };
-      if (ctm) svgP = pt.matrixTransform(ctm.inverse());
-      const sx = svgP.x;
-      const sy = svgP.y;
-      const w = screenToWorld(sx, sy);
-      if (panState.current.active && frozenLabelRef.current) {
-        setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
-      } else if (frozenLabelRef.current && !panJustEndedRef.current) {
-        setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
-      } else {
-        if (panJustEndedRef.current) {
-          panJustEndedRef.current = false;
-          return;
-        }
-        if (frozenLabelRef.current) frozenLabelRef.current = null;
-        setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
-      }
-    }
-    if (pinchRef.current.active && pinchZoomable) {
-      const svgEl2 = e.currentTarget.ownerSVGElement;
-      if (svgEl2) {
-        if (pointersRef.current.has(e.pointerId)) {
-          pointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
-        }
-        if (pointersRef.current.size >= 2) {
-          const pts = Array.from(pointersRef.current.values());
-          const p0 = pts[0], p1 = pts[1];
-          const midX = (p0.clientX + p1.clientX) / 2;
-          const midY = (p0.clientY + p1.clientY) / 2;
-          const pt2 = svgEl2.createSVGPoint();
-          pt2.x = midX;
-          pt2.y = midY;
-          const ctm2 = svgEl2.getScreenCTM();
-          let svgMid = { x: midX, y: midY };
-          if (ctm2) svgMid = pt2.matrixTransform(ctm2.inverse());
-          const sx = svgMid.x;
-          const sy = svgMid.y;
-          const w = screenToWorld(sx, sy);
-          const dx = p0.clientX - p1.clientX;
-          const dy = p0.clientY - p1.clientY;
-          const dist = Math.max(1e-6, Math.hypot(dx, dy));
-          const s = dist / Math.max(1e-6, pinchRef.current.lastDist);
-          let nx2 = [w.x + (curXRange[0] - w.x) / s, w.x + (curXRange[1] - w.x) / s];
-          let ny2 = [w.y + (curYRange[0] - w.y) / s, w.y + (curYRange[1] - w.y) / s];
-          if (pinchRef.current.lastCenter) {
-            const dxw = pinchRef.current.lastCenter.x - w.x;
-            const dyw = pinchRef.current.lastCenter.y - w.y;
-            nx2 = [nx2[0] + dxw, nx2[1] + dxw];
-            ny2 = [ny2[0] + dyw, ny2[1] + dyw];
-          }
-          setCurXRange(nx2);
-          setCurYRange(ny2);
-          onViewportChange == null ? void 0 : onViewportChange(nx2, ny2);
-          pinchRef.current.lastDist = dist;
-          pinchRef.current.lastCenter = { sx, sy, x: w.x, y: w.y };
-          setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
-        }
-      }
-      return;
-    }
-    if (!panState.current.active) return;
-    const svgEl3 = e.currentTarget.ownerSVGElement;
-    let curSX = e.clientX, curSY = e.clientY;
-    if (svgEl3) {
-      const pt3 = svgEl3.createSVGPoint();
-      pt3.x = e.clientX;
-      pt3.y = e.clientY;
-      const ctm3 = svgEl3.getScreenCTM();
-      if (ctm3) {
-        const svgP3 = pt3.matrixTransform(ctm3.inverse());
-        curSX = svgP3.x;
-        curSY = svgP3.y;
-      }
-    }
-    const dxPxSvg = curSX - panState.current.startSX;
-    const dyPxSvg = curSY - panState.current.startSY;
-    const dxWorld = dxPxSvg / Math.max(1e-12, pxPerUnitX);
-    const dyWorld = -dyPxSvg / Math.max(1e-12, pxPerUnitY);
-    const nx = [
-      panState.current.startXRange[0] - dxWorld,
-      panState.current.startXRange[1] - dxWorld
-    ];
-    const ny = [
-      panState.current.startYRange[0] - dyWorld,
-      panState.current.startYRange[1] - dyWorld
-    ];
+  const getSvgPoint = (svg, clientX, clientY) => {
+    if (!svg) return { x: clientX, y: clientY };
+    const pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    return ctm ? pt.matrixTransform(ctm.inverse()) : { x: clientX, y: clientY };
+  };
+  const startPan = (svg, clientX, clientY) => {
+    const svgP = getSvgPoint(svg, clientX, clientY);
+    interactionRef.current.mode = "pan";
+    interactionRef.current.startXRange = curXRange;
+    interactionRef.current.startYRange = curYRange;
+    interactionRef.current.startSvgX = svgP.x;
+    interactionRef.current.startSvgY = svgP.y;
+    const w = screenToWorld(svgP.x, svgP.y);
+    frozenLabelRef.current = { x: w.x, y: w.y };
+  };
+  const applyPan = (svg, clientX, clientY) => {
+    const svgP = getSvgPoint(svg, clientX, clientY);
+    const dxPx = svgP.x - interactionRef.current.startSvgX;
+    const dyPx = svgP.y - interactionRef.current.startSvgY;
+    const dxWorld = dxPx / Math.max(1e-12, pxPerUnitX);
+    const dyWorld = -dyPx / Math.max(1e-12, pxPerUnitY);
+    const nx = [interactionRef.current.startXRange[0] - dxWorld, interactionRef.current.startXRange[1] - dxWorld];
+    const ny = [interactionRef.current.startYRange[0] - dyWorld, interactionRef.current.startYRange[1] - dyWorld];
     setCurXRange(nx);
     setCurYRange(ny);
     onViewportChange == null ? void 0 : onViewportChange(nx, ny);
-  }, [pxPerUnitX, pxPerUnitY, onViewportChange]);
-  const endPan = React2.useCallback((e) => {
+  };
+  const startPinch = (svg) => {
+    if (pointers.current.size < 2) return;
+    const pts = Array.from(pointers.current.values());
+    const p0 = pts[0], p1 = pts[1];
+    const midX = (p0.clientX + p1.clientX) / 2;
+    const midY = (p0.clientY + p1.clientY) / 2;
+    const svgMid = getSvgPoint(svg, midX, midY);
+    const dx = p0.clientX - p1.clientX;
+    const dy = p0.clientY - p1.clientY;
+    const dist = Math.max(1e-6, Math.hypot(dx, dy));
+    const w = screenToWorld(svgMid.x, svgMid.y);
+    interactionRef.current.mode = "pinch";
+    interactionRef.current.pinchStartDist = dist;
+    interactionRef.current.pinchLastDist = dist;
+    interactionRef.current.pinchCenterWorld = { x: w.x, y: w.y };
+  };
+  const applyPinch = (svg) => {
+    if (interactionRef.current.mode !== "pinch" || !pinchZoomable) return;
+    if (pointers.current.size < 2 || !interactionRef.current.pinchCenterWorld) return;
+    const pts = Array.from(pointers.current.values());
+    const p0 = pts[0], p1 = pts[1];
+    const dx = p0.clientX - p1.clientX;
+    const dy = p0.clientY - p1.clientY;
+    const dist = Math.max(1e-6, Math.hypot(dx, dy));
+    const s = dist / Math.max(1e-6, interactionRef.current.pinchLastDist);
+    const c = interactionRef.current.pinchCenterWorld;
+    const nx = [c.x + (curXRange[0] - c.x) / s, c.x + (curXRange[1] - c.x) / s];
+    const ny = [c.y + (curYRange[0] - c.y) / s, c.y + (curYRange[1] - c.y) / s];
+    setCurXRange(nx);
+    setCurYRange(ny);
+    onViewportChange == null ? void 0 : onViewportChange(nx, ny);
+    interactionRef.current.pinchLastDist = dist;
+  };
+  const endInteraction = () => {
+    interactionRef.current.mode = "idle";
+    interactionRef.current.pinchCenterWorld = null;
+  };
+  const onPointerDown = React2.useCallback((e) => {
     var _a, _b;
-    if (e) {
-      try {
-        (_b = (_a = e.currentTarget).releasePointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
-      } catch {
+    const svg = e.currentTarget.ownerSVGElement;
+    try {
+      (_b = (_a = e.currentTarget).setPointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
+    } catch {
+    }
+    pointers.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    const isPrimaryMouse = e.pointerType === "mouse" && e.button === 0;
+    if (pinchZoomable && pointers.current.size === 2) {
+      startPinch(svg);
+      return;
+    }
+    if (pannable && isPrimaryMouse && interactionRef.current.mode === "idle") {
+      startPan(svg, e.clientX, e.clientY);
+    }
+  }, [pannable, pinchZoomable, curXRange, curYRange]);
+  const onPointerMove = React2.useCallback((e) => {
+    const svg = e.currentTarget.ownerSVGElement;
+    if (pointers.current.has(e.pointerId)) {
+      pointers.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    }
+    const svgP = getSvgPoint(svg, e.clientX, e.clientY);
+    const worldP = screenToWorld(svgP.x, svgP.y);
+    if (interactionRef.current.mode === "pinch") {
+      applyPinch(svg);
+      setMouse({ sx: svgP.x, sy: svgP.y, x: worldP.x, y: worldP.y, inside: true });
+      return;
+    }
+    if (interactionRef.current.mode === "pan") {
+      applyPan(svg, e.clientX, e.clientY);
+      if (frozenLabelRef.current) {
+        setMouse({ sx: svgP.x, sy: svgP.y, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
+      } else {
+        setMouse({ sx: svgP.x, sy: svgP.y, x: worldP.x, y: worldP.y, inside: true });
       }
-      pointersRef.current.delete(e.pointerId);
+      return;
     }
-    if (panState.current.active) {
-      panJustEndedRef.current = true;
+    if (frozenLabelRef.current) frozenLabelRef.current = null;
+    setMouse({ sx: svgP.x, sy: svgP.y, x: worldP.x, y: worldP.y, inside: true });
+  }, [applyPan, applyPinch, screenToWorld]);
+  const onPointerUp = React2.useCallback((e) => {
+    var _a, _b;
+    try {
+      (_b = (_a = e.currentTarget).releasePointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
+    } catch {
     }
-    panState.current.active = false;
-    if (pinchRef.current.active && pointersRef.current.size < 2) {
-      pinchRef.current.active = false;
-      pinchRef.current.lastCenter = null;
-      pinchRef.current.lastDist = 0;
+    pointers.current.delete(e.pointerId);
+    if (interactionRef.current.mode === "pinch") {
+      if (pointers.current.size < 2) endInteraction();
+    } else if (interactionRef.current.mode === "pan") {
+      endInteraction();
     }
   }, []);
-  const [mouse, setMouse] = React2.useState({ sx: 0, sy: 0, x: 0, y: 0, inside: false });
-  const frozenLabelRef = React2.useRef(null);
+  const onPointerCancel = onPointerUp;
   const onPointerLeaveArea = React2.useCallback((e) => {
-    endPan(e);
+    onPointerUp(e);
     setMouse((m2) => ({ ...m2, inside: false }));
-  }, [endPan]);
+  }, [onPointerUp]);
   React2.useEffect(() => {
     const el = wrapperRef.current;
     if (!el) return;
@@ -357,89 +259,59 @@ function Plot2D({
       e.preventDefault();
       const svg = svgRef.current;
       if (!svg) return;
-      const pt = svg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
-      const ctm = svg.getScreenCTM();
-      let svgP = { x: e.clientX, y: e.clientY };
-      if (ctm) svgP = pt.matrixTransform(ctm.inverse());
-      const sx = svgP.x;
-      const sy = svgP.y;
-      const w = screenToWorld(sx, sy);
-      const zx = e.deltaY < 0 ? 1 / zoomSpeed : zoomSpeed;
-      const zy = zx;
-      const nx = [
-        w.x + (curXRange[0] - w.x) * zx,
-        w.x + (curXRange[1] - w.x) * zx
-      ];
-      const ny = [
-        w.y + (curYRange[0] - w.y) * zy,
-        w.y + (curYRange[1] - w.y) * zy
-      ];
+      const svgP = getSvgPoint(svg, e.clientX, e.clientY);
+      const w = screenToWorld(svgP.x, svgP.y);
+      const factor = e.deltaY < 0 ? 1 / zoomSpeed : zoomSpeed;
+      const nx = [w.x + (curXRange[0] - w.x) * factor, w.x + (curXRange[1] - w.x) * factor];
+      const ny = [w.y + (curYRange[0] - w.y) * factor, w.y + (curYRange[1] - w.y) * factor];
       setCurXRange(nx);
       setCurYRange(ny);
       onViewportChange == null ? void 0 : onViewportChange(nx, ny);
-      setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
+      setMouse({ sx: svgP.x, sy: svgP.y, x: w.x, y: w.y, inside: true });
     };
     el.addEventListener("wheel", handler, { passive: false });
     return () => el.removeEventListener("wheel", handler);
   }, [zoomable, zoomSpeed, curXRange[0], curXRange[1], curYRange[0], curYRange[1], screenToWorld, onViewportChange]);
-  const ctxValue = React2.useMemo(
-    () => ({
-      width,
-      height,
-      innerWidth,
-      innerHeight,
-      margin: m,
-      xRange: curXRange,
-      yRange: curYRange,
-      worldToScreen,
-      screenToWorld,
-      htmlOverlay: overlayEl,
-      clipPathId,
-      mouse
-    }),
-    [width, height, innerWidth, innerHeight, m.top, m.right, m.bottom, m.left, curXRange[0], curXRange[1], curYRange[0], curYRange[1], overlayEl, clipPathId, mouse == null ? void 0 : mouse.sx, mouse == null ? void 0 : mouse.sy, mouse == null ? void 0 : mouse.x, mouse == null ? void 0 : mouse.y, mouse == null ? void 0 : mouse.inside]
-  );
-  return /* @__PURE__ */ jsxs(
-    "div",
-    {
-      ref: wrapperRef,
-      className,
-      style: { position: "relative", width, height, overscrollBehavior: "contain", touchAction: pannable || zoomable || pinchZoomable ? "none" : "auto", ...style },
-      children: [
-        /* @__PURE__ */ jsxs("svg", { ref: svgRef, width, height, style: { position: "absolute", inset: 0 }, children: [
-          /* @__PURE__ */ jsx("defs", { children: /* @__PURE__ */ jsx("clipPath", { id: clipPathId, children: /* @__PURE__ */ jsx("rect", { x: m.left, y: m.top, width: innerWidth, height: innerHeight }) }) }),
-          /* @__PURE__ */ jsxs(PlotContext.Provider, { value: ctxValue, children: [
-            /* @__PURE__ */ jsx("g", { children }),
-            /* @__PURE__ */ jsx(
-              "rect",
-              {
-                x: m.left,
-                y: m.top,
-                width: innerWidth,
-                height: innerHeight,
-                fill: "transparent",
-                style: { cursor: pannable ? panState.current.active ? "grabbing" : "grab" : "default", touchAction: pannable || pinchZoomable ? "none" : "auto" },
-                onPointerDown,
-                onPointerMove,
-                onPointerUp: endPan,
-                onPointerCancel: endPan,
-                onPointerLeave: onPointerLeaveArea
-              }
-            )
-          ] })
-        ] }),
+  const ctxValue = React2.useMemo(() => ({
+    width,
+    height,
+    innerWidth,
+    innerHeight,
+    margin: m,
+    xRange: curXRange,
+    yRange: curYRange,
+    worldToScreen,
+    screenToWorld,
+    htmlOverlay: overlayEl,
+    clipPathId,
+    mouse
+  }), [width, height, innerWidth, innerHeight, m.top, m.right, m.bottom, m.left, curXRange[0], curXRange[1], curYRange[0], curYRange[1], overlayEl, clipPathId, mouse == null ? void 0 : mouse.sx, mouse == null ? void 0 : mouse.sy, mouse == null ? void 0 : mouse.x, mouse == null ? void 0 : mouse.y, mouse == null ? void 0 : mouse.inside]);
+  const cursor = pannable ? interactionRef.current.mode === "pan" ? "grabbing" : "grab" : "default";
+  return /* @__PURE__ */ jsxs("div", { ref: wrapperRef, className, style: { position: "relative", width, height, overscrollBehavior: "contain", touchAction: pannable || zoomable || pinchZoomable ? "none" : "auto", ...style }, children: [
+    /* @__PURE__ */ jsxs("svg", { ref: svgRef, width, height, style: { position: "absolute", inset: 0 }, children: [
+      /* @__PURE__ */ jsx("defs", { children: /* @__PURE__ */ jsx("clipPath", { id: clipPathId, children: /* @__PURE__ */ jsx("rect", { x: m.left, y: m.top, width: innerWidth, height: innerHeight }) }) }),
+      /* @__PURE__ */ jsxs(PlotContext.Provider, { value: ctxValue, children: [
+        /* @__PURE__ */ jsx("g", { children }),
         /* @__PURE__ */ jsx(
-          "div",
+          "rect",
           {
-            ref: setOverlayEl,
-            style: { position: "absolute", inset: 0, pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222" }
+            x: m.left,
+            y: m.top,
+            width: innerWidth,
+            height: innerHeight,
+            fill: "transparent",
+            style: { cursor, touchAction: pannable || pinchZoomable ? "none" : "auto" },
+            onPointerDown,
+            onPointerMove,
+            onPointerUp,
+            onPointerCancel,
+            onPointerLeave: onPointerLeaveArea
           }
         )
-      ]
-    }
-  );
+      ] })
+    ] }),
+    /* @__PURE__ */ jsx("div", { ref: setOverlayEl, style: { position: "absolute", inset: 0, pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222" } })
+  ] });
 }
 
 // src/Axes2D.tsx

@@ -97,6 +97,7 @@ function Plot2D({
 }) {
   const wrapperRef = React2.useRef(null);
   const svgRef = React2.useRef(null);
+  const panJustEndedRef = React2.useRef(false);
   const m = {
     top: (margin == null ? void 0 : margin.top) ?? 20,
     right: (margin == null ? void 0 : margin.right) ?? 20,
@@ -240,10 +241,14 @@ function Plot2D({
       const w = screenToWorld(sx, sy);
       if (panState.current.active && frozenLabelRef.current) {
         setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
+      } else if (frozenLabelRef.current && !panJustEndedRef.current) {
+        setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
       } else {
-        if (frozenLabelRef.current) {
-          frozenLabelRef.current = null;
+        if (panJustEndedRef.current) {
+          panJustEndedRef.current = false;
+          return;
         }
+        if (frozenLabelRef.current) frozenLabelRef.current = null;
         setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
       }
     }
@@ -327,6 +332,9 @@ function Plot2D({
       } catch {
       }
       pointersRef.current.delete(e.pointerId);
+    }
+    if (panState.current.active) {
+      panJustEndedRef.current = true;
     }
     panState.current.active = false;
     if (pinchRef.current.active && pointersRef.current.size < 2) {

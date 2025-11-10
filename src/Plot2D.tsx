@@ -36,6 +36,7 @@ export function Plot2D({
 }: Plot2DProps) {
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const svgRef = React.useRef<SVGSVGElement | null>(null);
+  const panJustEndedRef = React.useRef(false);
   const m: Margins = {
     top: margin?.top ?? 20,
     right: margin?.right ?? 20,
@@ -166,14 +167,18 @@ export function Plot2D({
       const sy = svgP.y;
       const w = screenToWorld(sx, sy);
       if (panState.current.active && frozenLabelRef.current) {
-        // During active pan keep showing the original world coords where pan started
+        // Mantiene las coordenadas fijas durante el pan
+        setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
+      } else if (frozenLabelRef.current && !panJustEndedRef.current) {
+        // Todavía congelado pero sin pan activo (raro, pero válido)
         setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
       } else {
-        // If pan just ended we still have frozen coords; first real pointer move after pan end
-        // should release the freeze AFTER using current pointer world coords (prevent jump on pointerup).
-        if (frozenLabelRef.current) {
-          frozenLabelRef.current = null; // release freeze now that pointer actually moved
+        // Si acaba de terminar un pan, mantenemos la posición anterior una vez más
+        if (panJustEndedRef.current) {
+          panJustEndedRef.current = false;
+          return; // Evita actualizar mouse este frame, conserva el valor anterior
         }
+        if (frozenLabelRef.current) frozenLabelRef.current = null;
         setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
       }
     }
@@ -253,9 +258,10 @@ export function Plot2D({
       try { (e.currentTarget as any).releasePointerCapture?.(e.pointerId); } catch {}
       pointersRef.current.delete((e as any).pointerId);
     }
-    // End pan if it was active. Keep frozenLabelRef to avoid post-drag jump; it will be cleared on next pointer move.
+    if (panState.current.active) {
+      panJustEndedRef.current = true; // <- marcar que acaba de terminar un pan
+    }
     panState.current.active = false;
-    // If pinch loses fingers, end pinch
     if (pinchRef.current.active && pointersRef.current.size < 2) {
       pinchRef.current.active = false;
       pinchRef.current.lastCenter = null;

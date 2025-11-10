@@ -166,8 +166,14 @@ export function Plot2D({
       const sy = svgP.y;
       const w = screenToWorld(sx, sy);
       if (panState.current.active && frozenLabelRef.current) {
+        // During active pan keep showing the original world coords where pan started
         setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
       } else {
+        // If pan just ended we still have frozen coords; first real pointer move after pan end
+        // should release the freeze AFTER using current pointer world coords (prevent jump on pointerup).
+        if (frozenLabelRef.current) {
+          frozenLabelRef.current = null; // release freeze now that pointer actually moved
+        }
         setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
       }
     }
@@ -247,9 +253,8 @@ export function Plot2D({
       try { (e.currentTarget as any).releasePointerCapture?.(e.pointerId); } catch {}
       pointersRef.current.delete((e as any).pointerId);
     }
-    // End pan if it was active
+    // End pan if it was active. Keep frozenLabelRef to avoid post-drag jump; it will be cleared on next pointer move.
     panState.current.active = false;
-    frozenLabelRef.current = null;
     // If pinch loses fingers, end pinch
     if (pinchRef.current.active && pointersRef.current.size < 2) {
       pinchRef.current.active = false;

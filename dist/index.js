@@ -241,6 +241,9 @@ function Plot2D({
       if (panState.current.active && frozenLabelRef.current) {
         setMouse({ sx, sy, x: frozenLabelRef.current.x, y: frozenLabelRef.current.y, inside: true });
       } else {
+        if (frozenLabelRef.current) {
+          frozenLabelRef.current = null;
+        }
         setMouse({ sx, sy, x: w.x, y: w.y, inside: true });
       }
     }
@@ -326,7 +329,6 @@ function Plot2D({
       pointersRef.current.delete(e.pointerId);
     }
     panState.current.active = false;
-    frozenLabelRef.current = null;
     if (pinchRef.current.active && pointersRef.current.size < 2) {
       pinchRef.current.active = false;
       pinchRef.current.lastCenter = null;

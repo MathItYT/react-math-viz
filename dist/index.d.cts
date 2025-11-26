@@ -291,11 +291,12 @@ type RiemannSumProps = {
     method?: RiemannSumMethod;
     baseline?: number;
     fill?: string;
+    fillOpacity?: number;
     stroke?: string;
     strokeWidth?: number;
     clip?: boolean;
 };
-declare function RiemannSum({ f, a, b, n, method, baseline, fill, stroke, strokeWidth, clip }: RiemannSumProps): react_jsx_runtime.JSX.Element;
+declare function RiemannSum({ f, a, b, n, fillOpacity, method, baseline, fill, stroke, strokeWidth, clip }: RiemannSumProps): react_jsx_runtime.JSX.Element;
 
 type TangentLineProps = {
     f: (x: number) => number;

@@ -11,12 +11,13 @@ export type RiemannSumProps = {
   method?: RiemannSumMethod;
   baseline?: number; // for drawing rectangles down to this y (default 0)
   fill?: string;
+  fillOpacity?: number;
   stroke?: string;
   strokeWidth?: number;
   clip?: boolean;
 };
 
-export function RiemannSum({ f, a, b, n, method = "mid", baseline = 0, fill = "rgba(21,101,192,0.15)", stroke = "#1565c0", strokeWidth = 1, clip = true }: RiemannSumProps) {
+export function RiemannSum({ f, a, b, n, fillOpacity = 1, method = "mid", baseline = 0, fill = "rgba(21,101,192,0.15)", stroke = "#1565c0", strokeWidth = 1, clip = true }: RiemannSumProps) {
   const { worldToScreen, clipPathId } = usePlot();
   const rects = React.useMemo(() => {
     const rects: Array<string> = [];
@@ -53,7 +54,7 @@ export function RiemannSum({ f, a, b, n, method = "mid", baseline = 0, fill = "r
   return (
     <g clipPath={clip ? `url(#${clipPathId})` : undefined}>
       {rects.map((d, i) => (
-        <path key={i} d={d} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+        <path key={i} d={d} fill={fill} stroke={stroke} strokeWidth={strokeWidth} fillOpacity={fillOpacity} />
       ))}
     </g>
   );

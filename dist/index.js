@@ -1109,7 +1109,7 @@ function Area2D({ f, a, b, baseline = 0, samples = 300, fill = "rgba(21,101,192,
 // src/RiemannSum.tsx
 import React10 from "react";
 import { jsx as jsx16 } from "react/jsx-runtime";
-function RiemannSum({ f, a, b, n, method = "mid", baseline = 0, fill = "rgba(21,101,192,0.15)", stroke = "#1565c0", strokeWidth = 1, clip = true }) {
+function RiemannSum({ f, a, b, n, fillOpacity = 1, method = "mid", baseline = 0, fill = "rgba(21,101,192,0.15)", stroke = "#1565c0", strokeWidth = 1, clip = true }) {
   const { worldToScreen, clipPathId } = usePlot();
   const rects = React10.useMemo(() => {
     const rects2 = [];
@@ -1141,7 +1141,7 @@ function RiemannSum({ f, a, b, n, method = "mid", baseline = 0, fill = "rgba(21,
     }
     return rects2;
   }, [a, b, n, method, baseline, f, worldToScreen]);
-  return /* @__PURE__ */ jsx16("g", { clipPath: clip ? `url(#${clipPathId})` : void 0, children: rects.map((d, i) => /* @__PURE__ */ jsx16("path", { d, fill, stroke, strokeWidth }, i)) });
+  return /* @__PURE__ */ jsx16("g", { clipPath: clip ? `url(#${clipPathId})` : void 0, children: rects.map((d, i) => /* @__PURE__ */ jsx16("path", { d, fill, stroke, strokeWidth, fillOpacity }, i)) });
 }
 
 // src/TangentLine.tsx

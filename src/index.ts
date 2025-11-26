@@ -2,7 +2,7 @@ export { Plot2D } from "./Plot2D";
 export { Axes2D } from "./Axes2D";
 export { Parametric2D } from "./Parametric2D";
 export { Polygon2D } from "./Polygon2D";
-export { Arc, Circle } from "./Arc";
+export { Arc, Circle, Ellipse, EllipticalArc } from "./Arc";
 export { Label } from "./Label";
 export { Line } from "./Line";
 export { Function2D } from "./Function2D";

@@ -1,6 +1,10 @@
 import React from "react";
 import { usePlot } from "./context";
 
+// ==========================================
+// HELPERS & ARC (Original)
+// ==========================================
+
 export type ArcProps = {
   cx: number;
   cy: number;
@@ -96,6 +100,10 @@ export function Arc({ cx, cy, r, a0, a1, stroke = "#333", strokeWidth = 1.5, fil
   );
 }
 
+// ==========================================
+// CIRCLE (Original)
+// ==========================================
+
 export type CircleProps = {
   cx: number;
   cy: number;
@@ -117,5 +125,180 @@ export function Circle({ cx, cy, r, stroke = "#333", strokeWidth = 1, fill = "no
       <ellipse cx={c.x} cy={c.y} rx={rx} ry={ry} fill={fill} fillOpacity={fill !== "none" ? fillOpacity : undefined} />
       <ellipse cx={c.x} cy={c.y} rx={rx} ry={ry} fill="none" stroke={stroke} strokeWidth={strokeWidth} />
     </g>
+  );
+}
+
+// ==========================================
+// ELLIPTICAL ARC (New)
+// ==========================================
+
+export type EllipticalArcProps = {
+  cx: number;
+  cy: number;
+  rx: number; // Radius x in world units
+  ry: number; // Radius y in world units
+  a0: number; // Start angle (radians)
+  a1: number; // End angle (radians)
+  rotation?: number; // Rotation of the ellipse in radians (relative to world axes)
+  stroke?: string;
+  strokeWidth?: number;
+  fill?: string;
+  fillOpacity?: number;
+  clip?: boolean;
+};
+
+export function EllipticalArc({
+  cx,
+  cy,
+  rx,
+  ry,
+  a0,
+  a1,
+  rotation = 0,
+  stroke = "#333",
+  strokeWidth = 1.5,
+  fill,
+  fillOpacity = 0.2,
+  clip = true,
+}: EllipticalArcProps) {
+  const { worldToScreen, clipPathId } = usePlot();
+
+  const d = React.useMemo(() => {
+    let da = a1 - a0;
+    // Basic validation
+    if (Math.abs(da) < 1e-12 || rx <= 0 || ry <= 0) return "";
+    
+    const twoPi = Math.PI * 2;
+    const sweepSign = da >= 0 ? 1 : -1;
+    da = Math.min(twoPi, Math.abs(da));
+    const span = da;
+
+    // Determine segments based on curvature estimation or fixed step
+    const segments = Math.max(6, Math.ceil(span / (Math.PI / 64)));
+    const step = sweepSign * (span / segments);
+    
+    const points: { x: number; y: number }[] = [];
+    
+    // Pre-calculate rotation trig to save performance in loop
+    const cosRot = Math.cos(rotation);
+    const sinRot = Math.sin(rotation);
+
+    for (let i = 0; i <= segments; i++) {
+      const t = a0 + i * step;
+      const cosT = Math.cos(t);
+      const sinT = Math.sin(t);
+
+      // Parametric equation for rotated ellipse
+      const wx = cx + rx * cosT * cosRot - ry * sinT * sinRot;
+      const wy = cy + rx * cosT * sinRot + ry * sinT * cosRot;
+
+      points.push(worldToScreen(wx, wy));
+    }
+
+    if (!points.length) return "";
+
+    // Build Path
+    if (fill) {
+      // For filled arcs (wedges), we start at center, go to first point, outline arc, return to center
+      const c = worldToScreen(cx, cy);
+      let s = `M ${c.x} ${c.y} L ${points[0].x} ${points[0].y}`;
+      for (let i = 1; i < points.length; i++) s += ` L ${points[i].x} ${points[i].y}`;
+      s += " Z";
+      return s;
+    } else {
+      // Stroke only
+      let s = `M ${points[0].x} ${points[0].y}`;
+      for (let i = 1; i < points.length; i++) s += ` L ${points[i].x} ${points[i].y}`;
+      return s;
+    }
+  }, [cx, cy, rx, ry, a0, a1, rotation, worldToScreen, fill]);
+
+  if (!d) return null;
+
+  return (
+    <path
+      d={d}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      fill={fill ? fill : "none"}
+      fillOpacity={fill ? fillOpacity : undefined}
+      clipPath={clip ? `url(#${clipPathId})` : undefined}
+    />
+  );
+}
+
+// ==========================================
+// ELLIPSE (New)
+// ==========================================
+
+export type EllipseProps = {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  rotation?: number; // radians
+  stroke?: string;
+  strokeWidth?: number;
+  fill?: string;
+  fillOpacity?: number;
+  clip?: boolean;
+};
+
+export function Ellipse({
+  cx,
+  cy,
+  rx,
+  ry,
+  rotation = 0,
+  stroke = "#333",
+  strokeWidth = 1,
+  fill = "none",
+  fillOpacity = 1,
+  clip = true,
+}: EllipseProps) {
+  const { worldToScreen, clipPathId } = usePlot();
+
+  const d = React.useMemo(() => {
+    if (rx <= 0 || ry <= 0) return "";
+
+    // Always full loop 0 to 2PI
+    const segments = 64; 
+    const step = (Math.PI * 2) / segments;
+    const points: { x: number; y: number }[] = [];
+
+    const cosRot = Math.cos(rotation);
+    const sinRot = Math.sin(rotation);
+
+    for (let i = 0; i <= segments; i++) {
+      const t = i * step; // Start at 0
+      const cosT = Math.cos(t);
+      const sinT = Math.sin(t);
+
+      const wx = cx + rx * cosT * cosRot - ry * sinT * sinRot;
+      const wy = cy + rx * cosT * sinRot + ry * sinT * cosRot;
+
+      points.push(worldToScreen(wx, wy));
+    }
+
+    if (!points.length) return "";
+
+    let s = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) s += ` L ${points[i].x} ${points[i].y}`;
+    s += " Z"; // Close path cleanly
+    return s;
+
+  }, [cx, cy, rx, ry, rotation, worldToScreen]);
+
+  if (!d) return null;
+
+  return (
+    <path
+      d={d}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      fill={fill}
+      fillOpacity={fill !== "none" ? fillOpacity : undefined}
+      clipPath={clip ? `url(#${clipPathId})` : undefined}
+    />
   );
 }

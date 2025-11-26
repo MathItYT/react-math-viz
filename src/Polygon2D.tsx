@@ -6,6 +6,7 @@ export type Polygon2DProps = {
   stroke?: string;
   strokeWidth?: number;
   fill?: string;
+  fillOpacity?: number;
   closed?: boolean;
   clip?: boolean;
 };
@@ -15,6 +16,7 @@ export function Polygon2D({
   stroke = "#000",
   strokeWidth = 2,
   fill = "rgba(0,0,0,0.06)",
+  fillOpacity = 1,
   closed = true,
   clip = true,
 }: Polygon2DProps) {
@@ -38,6 +40,7 @@ export function Polygon2D({
       d={d}
       stroke={stroke}
       strokeWidth={strokeWidth}
+      fillOpacity={fillOpacity}
       fill={closed ? fill : "none"}
       clipPath={clip ? `url(#${clipPathId})` : undefined}
     />

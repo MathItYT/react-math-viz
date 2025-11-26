@@ -83,10 +83,11 @@ type Polygon2DProps = {
     stroke?: string;
     strokeWidth?: number;
     fill?: string;
+    fillOpacity?: number;
     closed?: boolean;
     clip?: boolean;
 };
-declare function Polygon2D({ points, stroke, strokeWidth, fill, closed, clip, }: Polygon2DProps): react_jsx_runtime.JSX.Element;
+declare function Polygon2D({ points, stroke, strokeWidth, fill, fillOpacity, closed, clip, }: Polygon2DProps): react_jsx_runtime.JSX.Element;
 
 type ArcProps = {
     cx: number;

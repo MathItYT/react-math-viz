@@ -741,6 +741,7 @@ function Polygon2D({
   stroke = "#000",
   strokeWidth = 2,
   fill = "rgba(0,0,0,0.06)",
+  fillOpacity = 1,
   closed = true,
   clip = true
 }) {
@@ -764,6 +765,7 @@ function Polygon2D({
       d,
       stroke,
       strokeWidth,
+      fillOpacity,
       fill: closed ? fill : "none",
       clipPath: clip ? `url(#${clipPathId})` : void 0
     }

@@ -112,6 +112,34 @@ type CircleProps = {
     clip?: boolean;
 };
 declare function Circle({ cx, cy, r, stroke, strokeWidth, fill, fillOpacity, clip }: CircleProps): react_jsx_runtime.JSX.Element;
+type EllipticalArcProps = {
+    cx: number;
+    cy: number;
+    rx: number;
+    ry: number;
+    a0: number;
+    a1: number;
+    rotation?: number;
+    stroke?: string;
+    strokeWidth?: number;
+    fill?: string;
+    fillOpacity?: number;
+    clip?: boolean;
+};
+declare function EllipticalArc({ cx, cy, rx, ry, a0, a1, rotation, stroke, strokeWidth, fill, fillOpacity, clip, }: EllipticalArcProps): react_jsx_runtime.JSX.Element;
+type EllipseProps = {
+    cx: number;
+    cy: number;
+    rx: number;
+    ry: number;
+    rotation?: number;
+    stroke?: string;
+    strokeWidth?: number;
+    fill?: string;
+    fillOpacity?: number;
+    clip?: boolean;
+};
+declare function Ellipse({ cx, cy, rx, ry, rotation, stroke, strokeWidth, fill, fillOpacity, clip, }: EllipseProps): react_jsx_runtime.JSX.Element;
 
 type LabelProps = {
     x: number;
@@ -762,4 +790,4 @@ type Animate3DProps = {
 };
 declare function Animate3D({ children, type, from, to, duration, delay, easing, autoplay, loop, yoyo, replayKey }: Animate3DProps): react_jsx_runtime.JSX.Element;
 
-export { AngleMarker, Animate2D, Animate3D, Arc, Area2D, Axes2D, Axes3D, Bezier2D, Box3D, Circle, Cone3D, Contour2D, Crosshair2D, Cylinder3D, DistanceMarker, type EasingFn, type EasingName, Function2D, Grid3D, Group3D, Heatmap2D, Image2D, Implicit2D, Label, Label3D, Legend2D, Legend3D, Line, LinearGradient2D, NormalLine, NumberLine, Parametric2D, ParametricSurface3D, Plot2D, Plot3D, Point2D, PolarFunction2D, Polygon2D, Polyline2D, RadialGradient2D, Ray2D, RiemannSum, Scatter2D, Scatter3D, Sphere3D, Surface3D, TangentLine, Title2D, Torus3D, Vector2D, VectorField2D, easing, getEasing, useAnimation, useTween };
+export { AngleMarker, Animate2D, Animate3D, Arc, Area2D, Axes2D, Axes3D, Bezier2D, Box3D, Circle, Cone3D, Contour2D, Crosshair2D, Cylinder3D, DistanceMarker, type EasingFn, type EasingName, Ellipse, EllipticalArc, Function2D, Grid3D, Group3D, Heatmap2D, Image2D, Implicit2D, Label, Label3D, Legend2D, Legend3D, Line, LinearGradient2D, NormalLine, NumberLine, Parametric2D, ParametricSurface3D, Plot2D, Plot3D, Point2D, PolarFunction2D, Polygon2D, Polyline2D, RadialGradient2D, Ray2D, RiemannSum, Scatter2D, Scatter3D, Sphere3D, Surface3D, TangentLine, Title2D, Torus3D, Vector2D, VectorField2D, easing, getEasing, useAnimation, useTween };

@@ -44,6 +44,8 @@ __export(index_exports, {
   Crosshair2D: () => Crosshair2D,
   Cylinder3D: () => Cylinder3D,
   DistanceMarker: () => DistanceMarker,
+  Ellipse: () => Ellipse,
+  EllipticalArc: () => EllipticalArc,
   Function2D: () => Function2D,
   Grid3D: () => Grid3D,
   Group3D: () => Group3D,
@@ -824,6 +826,114 @@ function Circle({ cx, cy, r, stroke = "#333", strokeWidth = 1, fill = "none", fi
     /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("ellipse", { cx: c.x, cy: c.y, rx, ry, fill, fillOpacity: fill !== "none" ? fillOpacity : void 0 }),
     /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("ellipse", { cx: c.x, cy: c.y, rx, ry, fill: "none", stroke, strokeWidth })
   ] });
+}
+function EllipticalArc({
+  cx,
+  cy,
+  rx,
+  ry,
+  a0,
+  a1,
+  rotation = 0,
+  stroke = "#333",
+  strokeWidth = 1.5,
+  fill,
+  fillOpacity = 0.2,
+  clip = true
+}) {
+  const { worldToScreen, clipPathId } = usePlot();
+  const d = import_react5.default.useMemo(() => {
+    let da = a1 - a0;
+    if (Math.abs(da) < 1e-12 || rx <= 0 || ry <= 0) return "";
+    const twoPi = Math.PI * 2;
+    const sweepSign = da >= 0 ? 1 : -1;
+    da = Math.min(twoPi, Math.abs(da));
+    const span = da;
+    const segments = Math.max(6, Math.ceil(span / (Math.PI / 64)));
+    const step = sweepSign * (span / segments);
+    const points = [];
+    const cosRot = Math.cos(rotation);
+    const sinRot = Math.sin(rotation);
+    for (let i = 0; i <= segments; i++) {
+      const t = a0 + i * step;
+      const cosT = Math.cos(t);
+      const sinT = Math.sin(t);
+      const wx = cx + rx * cosT * cosRot - ry * sinT * sinRot;
+      const wy = cy + rx * cosT * sinRot + ry * sinT * cosRot;
+      points.push(worldToScreen(wx, wy));
+    }
+    if (!points.length) return "";
+    if (fill) {
+      const c = worldToScreen(cx, cy);
+      let s = `M ${c.x} ${c.y} L ${points[0].x} ${points[0].y}`;
+      for (let i = 1; i < points.length; i++) s += ` L ${points[i].x} ${points[i].y}`;
+      s += " Z";
+      return s;
+    } else {
+      let s = `M ${points[0].x} ${points[0].y}`;
+      for (let i = 1; i < points.length; i++) s += ` L ${points[i].x} ${points[i].y}`;
+      return s;
+    }
+  }, [cx, cy, rx, ry, a0, a1, rotation, worldToScreen, fill]);
+  if (!d) return null;
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+    "path",
+    {
+      d,
+      stroke,
+      strokeWidth,
+      fill: fill ? fill : "none",
+      fillOpacity: fill ? fillOpacity : void 0,
+      clipPath: clip ? `url(#${clipPathId})` : void 0
+    }
+  );
+}
+function Ellipse({
+  cx,
+  cy,
+  rx,
+  ry,
+  rotation = 0,
+  stroke = "#333",
+  strokeWidth = 1,
+  fill = "none",
+  fillOpacity = 1,
+  clip = true
+}) {
+  const { worldToScreen, clipPathId } = usePlot();
+  const d = import_react5.default.useMemo(() => {
+    if (rx <= 0 || ry <= 0) return "";
+    const segments = 64;
+    const step = Math.PI * 2 / segments;
+    const points = [];
+    const cosRot = Math.cos(rotation);
+    const sinRot = Math.sin(rotation);
+    for (let i = 0; i <= segments; i++) {
+      const t = i * step;
+      const cosT = Math.cos(t);
+      const sinT = Math.sin(t);
+      const wx = cx + rx * cosT * cosRot - ry * sinT * sinRot;
+      const wy = cy + rx * cosT * sinRot + ry * sinT * cosRot;
+      points.push(worldToScreen(wx, wy));
+    }
+    if (!points.length) return "";
+    let s = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) s += ` L ${points[i].x} ${points[i].y}`;
+    s += " Z";
+    return s;
+  }, [cx, cy, rx, ry, rotation, worldToScreen]);
+  if (!d) return null;
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+    "path",
+    {
+      d,
+      stroke,
+      strokeWidth,
+      fill,
+      fillOpacity: fill !== "none" ? fillOpacity : void 0,
+      clipPath: clip ? `url(#${clipPathId})` : void 0
+    }
+  );
 }
 
 // src/Label.tsx
@@ -3520,6 +3630,8 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
   Crosshair2D,
   Cylinder3D,
   DistanceMarker,
+  Ellipse,
+  EllipticalArc,
   Function2D,
   Grid3D,
   Group3D,

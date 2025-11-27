@@ -150,7 +150,7 @@ export function Axes2D({
   const labelXForY = zeroXInRange ? 0 : (Math.abs(xRange[0]) <= Math.abs(xRange[1]) ? xRange[0] : xRange[1]);
 
   const baseXLabelOffset = labelOffset.y ?? 8;
-  const xLabelAbove = zeroYInRange ? false : (labelYForX === yRange[1]);
+  const xLabelAbove = zeroYInRange ? false : (labelYForX !== yRange[1]);
 
   const labels = (
     // 2. Cambia x, y, width, height para cubrir todo el SVG
@@ -171,7 +171,7 @@ export function Axes2D({
           const node = renderYLabel(y);
           if (node == null) return null;
           const p = worldToScreen(labelXForY, y);
-          const placeLeft = zeroXInRange ? true : (labelXForY === xRange[0]);
+          const placeLeft = zeroXInRange ? true : (labelXForY !== xRange[0]);
           const baseX = labelOffset.x ?? 12;
           const leftAbs = p.x + (placeLeft ? -baseX : baseX);
           const transform = placeLeft ? 'translate(-100%, -50%)' : 'translate(0, -50%)';

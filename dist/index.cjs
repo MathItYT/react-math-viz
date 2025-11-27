@@ -512,7 +512,7 @@ function Axes2D({
   const labelYForX = zeroYInRange ? 0 : Math.abs(yRange[0]) <= Math.abs(yRange[1]) ? yRange[0] : yRange[1];
   const labelXForY = zeroXInRange ? 0 : Math.abs(xRange[0]) <= Math.abs(xRange[1]) ? xRange[0] : xRange[1];
   const baseXLabelOffset = labelOffset.y ?? 8;
-  const xLabelAbove = zeroYInRange ? false : labelYForX === yRange[1];
+  const xLabelAbove = zeroYInRange ? false : labelYForX !== yRange[1];
   const labels = (
     // 2. Cambia x, y, width, height para cubrir todo el SVG
     /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("foreignObject", { x: 0, y: 0, width, height, style: { overflow: "visible" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222", userSelect: "none" }, children: [
@@ -531,7 +531,7 @@ function Axes2D({
         const node = renderYLabel(y);
         if (node == null) return null;
         const p = worldToScreen(labelXForY, y);
-        const placeLeft = zeroXInRange ? true : labelXForY === xRange[0];
+        const placeLeft = zeroXInRange ? true : labelXForY !== xRange[0];
         const baseX = labelOffset.x ?? 12;
         const leftAbs = p.x + (placeLeft ? -baseX : baseX);
         const transform = placeLeft ? "translate(-100%, -50%)" : "translate(0, -50%)";

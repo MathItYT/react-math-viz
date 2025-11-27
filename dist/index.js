@@ -1,3 +1,23 @@
+var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+
 // src/Plot2D.tsx
 import React2 from "react";
 
@@ -95,13 +115,14 @@ function Plot2D({
   zoomSpeed = 1.1,
   pinchZoomable = true
 }) {
+  var _a, _b, _c, _d;
   const wrapperRef = React2.useRef(null);
   const svgRef = React2.useRef(null);
   const m = {
-    top: (margin == null ? void 0 : margin.top) ?? 20,
-    right: (margin == null ? void 0 : margin.right) ?? 20,
-    bottom: (margin == null ? void 0 : margin.bottom) ?? 30,
-    left: (margin == null ? void 0 : margin.left) ?? 40
+    top: (_a = margin == null ? void 0 : margin.top) != null ? _a : 20,
+    right: (_b = margin == null ? void 0 : margin.right) != null ? _b : 20,
+    bottom: (_c = margin == null ? void 0 : margin.bottom) != null ? _c : 30,
+    left: (_d = margin == null ? void 0 : margin.left) != null ? _d : 40
   };
   const innerWidth = Math.max(0, width - m.left - m.right);
   const innerHeight = Math.max(0, height - m.top - m.bottom);
@@ -193,11 +214,11 @@ function Plot2D({
     interactionRef.current.pinchCenterWorld = null;
   };
   const onPointerDown = React2.useCallback((e) => {
-    var _a, _b;
+    var _a2, _b2;
     const svg = e.currentTarget.ownerSVGElement;
     try {
-      (_b = (_a = e.currentTarget).setPointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
-    } catch {
+      (_b2 = (_a2 = e.currentTarget).setPointerCapture) == null ? void 0 : _b2.call(_a2, e.pointerId);
+    } catch (e2) {
     }
     pointers.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
     const isPrimaryMouse = e.pointerType === "mouse" && e.button === 0;
@@ -234,10 +255,10 @@ function Plot2D({
     setMouse({ sx: svgP.x, sy: svgP.y, x: worldP.x, y: worldP.y, inside: true });
   }, [applyPan, applyPinch, screenToWorld]);
   const onPointerUp = React2.useCallback((e) => {
-    var _a, _b;
+    var _a2, _b2;
     try {
-      (_b = (_a = e.currentTarget).releasePointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
-    } catch {
+      (_b2 = (_a2 = e.currentTarget).releasePointerCapture) == null ? void 0 : _b2.call(_a2, e.pointerId);
+    } catch (e2) {
     }
     pointers.current.delete(e.pointerId);
     if (interactionRef.current.mode === "pinch") {
@@ -249,7 +270,7 @@ function Plot2D({
   const onPointerCancel = onPointerUp;
   const onPointerLeaveArea = React2.useCallback((e) => {
     onPointerUp(e);
-    setMouse((m2) => ({ ...m2, inside: false }));
+    setMouse((m2) => __spreadProps(__spreadValues({}, m2), { inside: false }));
   }, [onPointerUp]);
   React2.useEffect(() => {
     const el = wrapperRef.current;
@@ -287,7 +308,7 @@ function Plot2D({
     mouse
   }), [width, height, innerWidth, innerHeight, m.top, m.right, m.bottom, m.left, curXRange[0], curXRange[1], curYRange[0], curYRange[1], overlayEl, clipPathId, mouse == null ? void 0 : mouse.sx, mouse == null ? void 0 : mouse.sy, mouse == null ? void 0 : mouse.x, mouse == null ? void 0 : mouse.y, mouse == null ? void 0 : mouse.inside]);
   const cursor = pannable ? interactionRef.current.mode === "pan" ? "grabbing" : "grab" : "default";
-  return /* @__PURE__ */ jsxs("div", { ref: wrapperRef, className, style: { position: "relative", width, height, overscrollBehavior: "contain", touchAction: pannable || zoomable || pinchZoomable ? "none" : "auto", ...style }, children: [
+  return /* @__PURE__ */ jsxs("div", { ref: wrapperRef, className, style: __spreadValues({ position: "relative", width, height, overscrollBehavior: "contain", touchAction: pannable || zoomable || pinchZoomable ? "none" : "auto" }, style), children: [
     /* @__PURE__ */ jsxs("svg", { ref: svgRef, width, height, style: { position: "absolute", inset: 0 }, children: [
       /* @__PURE__ */ jsx("defs", { children: /* @__PURE__ */ jsx("clipPath", { id: clipPathId, children: /* @__PURE__ */ jsx("rect", { x: m.left, y: m.top, width: innerWidth, height: innerHeight }) }) }),
       /* @__PURE__ */ jsxs(PlotContext.Provider, { value: ctxValue, children: [
@@ -336,6 +357,7 @@ function Axes2D({
   renderYLabel,
   labelOffset = { x: 12, y: 8 }
 }) {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i;
   const { width, height, xRange, yRange, worldToScreen, clipPathId, innerWidth, innerHeight, margin } = usePlot();
   let xTickVals = [];
   let yTickVals = [];
@@ -357,8 +379,8 @@ function Axes2D({
   const p01 = worldToScreen(0, 1);
   const pxPerUnitX = Math.max(1e-9, Math.abs(p10.x - p00.x));
   const pxPerUnitY = Math.max(1e-9, Math.abs(p01.y - p00.y));
-  const targetMajorPxX = typeof gridMajorPx === "number" ? gridMajorPx : gridMajorPx.x ?? 80;
-  const targetMajorPxY = typeof gridMajorPx === "number" ? gridMajorPx : gridMajorPx.y ?? 80;
+  const targetMajorPxX = typeof gridMajorPx === "number" ? gridMajorPx : (_a = gridMajorPx.x) != null ? _a : 80;
+  const targetMajorPxY = typeof gridMajorPx === "number" ? gridMajorPx : (_b = gridMajorPx.y) != null ? _b : 80;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const coarsenDelta = (delta, pxPerUnit, targetPx) => {
     if (!delta || !(delta > 0)) return void 0;
@@ -411,9 +433,9 @@ function Axes2D({
   const gridCfg = typeof grid === "boolean" ? { stroke: "#999", strokeWidth: 1, opacity: 0.15 } : grid;
   const minorGridCfgRaw = typeof minorGrid === "boolean" ? {} : minorGrid || {};
   const minorGridCfg = {
-    stroke: minorGridCfgRaw.stroke ?? (gridCfg == null ? void 0 : gridCfg.stroke) ?? "#999",
-    strokeWidth: minorGridCfgRaw.strokeWidth ?? Math.max(0.5, ((gridCfg == null ? void 0 : gridCfg.strokeWidth) ?? 1) * 0.6),
-    opacity: minorGridCfgRaw.opacity ?? Math.min(1, ((gridCfg == null ? void 0 : gridCfg.opacity) ?? 0.15) * 0.9)
+    stroke: (_d = (_c = minorGridCfgRaw.stroke) != null ? _c : gridCfg == null ? void 0 : gridCfg.stroke) != null ? _d : "#999",
+    strokeWidth: (_f = minorGridCfgRaw.strokeWidth) != null ? _f : Math.max(0.5, ((_e = gridCfg == null ? void 0 : gridCfg.strokeWidth) != null ? _e : 1) * 0.6),
+    opacity: (_h = minorGridCfgRaw.opacity) != null ? _h : Math.min(1, ((_g = gridCfg == null ? void 0 : gridCfg.opacity) != null ? _g : 0.15) * 0.9)
   };
   if (grid && !minorGrid && (xSubdivisions === 0 && ySubdivisions === 0)) {
     xSubdivisions = 4;
@@ -422,7 +444,7 @@ function Axes2D({
   }
   const labelYForX = zeroYInRange ? 0 : Math.abs(yRange[0]) <= Math.abs(yRange[1]) ? yRange[0] : yRange[1];
   const labelXForY = zeroXInRange ? 0 : Math.abs(xRange[0]) <= Math.abs(xRange[1]) ? xRange[0] : xRange[1];
-  const baseXLabelOffset = labelOffset.y ?? 8;
+  const baseXLabelOffset = (_i = labelOffset.y) != null ? _i : 8;
   const xLabelAbove = zeroYInRange ? false : labelYForX !== yRange[1];
   const labels = (
     // 2. Cambia x, y, width, height para cubrir todo el SVG
@@ -439,11 +461,12 @@ function Axes2D({
         );
       }),
       renderYLabel && yTickVals.map((y) => {
+        var _a2;
         const node = renderYLabel(y);
         if (node == null) return null;
         const p = worldToScreen(labelXForY, y);
         const placeLeft = zeroXInRange ? true : labelXForY !== xRange[0];
-        const baseX = labelOffset.x ?? 12;
+        const baseX = (_a2 = labelOffset.x) != null ? _a2 : 12;
         const leftAbs = p.x + (placeLeft ? -baseX : baseX);
         const transform = placeLeft ? "translate(-100%, -50%)" : "translate(0, -50%)";
         const textAlign = placeLeft ? "right" : "left";
@@ -1011,7 +1034,7 @@ function Vector2D({ x1, y1, x2, y2, stroke = "#1565c0", strokeWidth = 2, headSiz
   const c = { x: backX - orthoX * w * 0.5, y: backY - orthoY * w * 0.5 };
   return /* @__PURE__ */ jsxs4("g", { clipPath: clip ? `url(#${clipPathId})` : void 0, children: [
     /* @__PURE__ */ jsx12("line", { x1: p1.x, y1: p1.y, x2: backX, y2: backY, stroke, strokeWidth }),
-    /* @__PURE__ */ jsx12("polygon", { points: `${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y}`, fill: fillHead ?? stroke })
+    /* @__PURE__ */ jsx12("polygon", { points: `${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y}`, fill: fillHead != null ? fillHead : stroke })
   ] });
 }
 
@@ -1039,13 +1062,13 @@ function Polyline2D({ points, stroke = "#1565c0", strokeWidth = 2, strokeDasharr
 import React8 from "react";
 import { jsx as jsx14 } from "react/jsx-runtime";
 function Bezier2D(props) {
-  var _a, _b, _c, _d, _e, _f, _g, _h;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
   const { worldToScreen, clipPathId } = usePlot();
-  const samples = props.samples ?? 120;
-  const stroke = props.stroke ?? "#1565c0";
-  const strokeWidth = props.strokeWidth ?? 2;
+  const samples = (_a = props.samples) != null ? _a : 120;
+  const stroke = (_b = props.stroke) != null ? _b : "#1565c0";
+  const strokeWidth = (_c = props.strokeWidth) != null ? _c : 2;
   const strokeDasharray = props.strokeDasharray;
-  const clip = props.clip ?? true;
+  const clip = (_d = props.clip) != null ? _d : true;
   const points = React8.useMemo(() => {
     const pts = [];
     if (props.kind === "quadratic") {
@@ -1073,7 +1096,7 @@ function Bezier2D(props) {
       }
     }
     return pts;
-  }, [(_a = props.p0) == null ? void 0 : _a[0], (_b = props.p0) == null ? void 0 : _b[1], (_c = props.p1) == null ? void 0 : _c[0], (_d = props.p1) == null ? void 0 : _d[1], (_e = props.p2) == null ? void 0 : _e[0], (_f = props.p2) == null ? void 0 : _f[1], props.kind, (_g = props.p3) == null ? void 0 : _g[0], (_h = props.p3) == null ? void 0 : _h[1], samples, worldToScreen]);
+  }, [(_e = props.p0) == null ? void 0 : _e[0], (_f = props.p0) == null ? void 0 : _f[1], (_g = props.p1) == null ? void 0 : _g[0], (_h = props.p1) == null ? void 0 : _h[1], (_i = props.p2) == null ? void 0 : _i[0], (_j = props.p2) == null ? void 0 : _j[1], props.kind, (_k = props.p3) == null ? void 0 : _k[0], (_l = props.p3) == null ? void 0 : _l[1], samples, worldToScreen]);
   const d = React8.useMemo(() => {
     if (points.length === 0) return "";
     const [p0, ...rest] = points;
@@ -1306,14 +1329,14 @@ function VectorField2D({
   const arrows = React11.useMemo(() => {
     const nodes = [];
     if (mode === "world") {
-      const sx = stepX ?? initStepRef.current.sx;
-      const sy = stepY ?? initStepRef.current.sy;
+      const sx = stepX != null ? stepX : initStepRef.current.sx;
+      const sy = stepY != null ? stepY : initStepRef.current.sy;
       const [ox, oy] = origin;
       const iMin = Math.ceil((xmin - ox) / sx);
       const iMax = Math.floor((xmax - ox) / sx);
       const jMin = Math.ceil((ymin - oy) / sy);
       const jMax = Math.floor((ymax - oy) / sy);
-      const base = scale ?? 0.35 * Math.hypot(sx, sy);
+      const base = scale != null ? scale : 0.35 * Math.hypot(sx, sy);
       for (let j = jMin; j <= jMax; j++) {
         for (let i = iMin; i <= iMax; i++) {
           const x = ox + i * sx;
@@ -1327,7 +1350,7 @@ function VectorField2D({
             mx = vx / m * base;
             my = vy / m * base;
           } else {
-            const s = scale ?? 1;
+            const s = scale != null ? scale : 1;
             mx = vx * s;
             my = vy * s;
           }
@@ -1340,7 +1363,7 @@ function VectorField2D({
     } else {
       const dx = (xmax - xmin) / Math.max(1, countX - 1);
       const dy = (ymax - ymin) / Math.max(1, countY - 1);
-      const base = scale ?? 0.35 * Math.hypot(dx, dy);
+      const base = scale != null ? scale : 0.35 * Math.hypot(dx, dy);
       for (let iy = 0; iy < countY; iy++) {
         for (let ix = 0; ix < countX; ix++) {
           const x = xmin + ix * dx;
@@ -1354,7 +1377,7 @@ function VectorField2D({
             mx = vx / m * base;
             my = vy / m * base;
           } else {
-            const s = scale ?? 1;
+            const s = scale != null ? scale : 1;
             mx = vx * s;
             my = vy * s;
           }
@@ -1396,8 +1419,8 @@ function Heatmap2D({ f, mode = "world", origin = [0, 0], stepX, stepY, countX = 
     let minv = Infinity, maxv = -Infinity;
     const tiles = [];
     if (mode === "world") {
-      const sx = stepX ?? initStepRef.current.sx;
-      const sy = stepY ?? initStepRef.current.sy;
+      const sx = stepX != null ? stepX : initStepRef.current.sx;
+      const sy = stepY != null ? stepY : initStepRef.current.sy;
       const [ox, oy] = origin;
       const iMin = Math.floor((xmin - ox) / sx) - 1;
       const iMax = Math.ceil((xmax - ox) / sx) + 1;
@@ -1616,7 +1639,7 @@ function NumberLine({
   labelsAbove = false
 }) {
   const { xRange: plotX, worldToScreen, clipPathId, innerWidth, margin } = usePlot();
-  const xr = xRange ?? plotX;
+  const xr = xRange != null ? xRange : plotX;
   const p0 = worldToScreen(0, y);
   const p1 = worldToScreen(1, y);
   const pxPerUnitX = Math.max(1e-9, Math.abs(p1.x - p0.x));
@@ -1692,10 +1715,13 @@ function Legend2D({ items, position = "top-right", padding = 8, bg = "rgba(255,2
   const top = position.startsWith("top") ? y0 + padding : y0 + height - padding;
   const left = isTR || isBR ? x0 + width - padding : x0 + padding;
   const align = isTR || isBR ? "right" : "left";
-  return /* @__PURE__ */ jsx28("foreignObject", { x: margin.left, y: margin.top, width: innerWidth, height: innerHeight, opacity, children: /* @__PURE__ */ jsx28("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12 }, children: /* @__PURE__ */ jsx28("div", { style: { position: "absolute", left: left - margin.left, top: top - margin.top, transform: `translate(${align === "right" ? "-100%" : "0"}, ${position.startsWith("top") ? "0" : "-100%"})`, background: bg, border: "1px solid #e5e7eb", borderRadius: 6, padding: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }, children: items.map((it, i) => /* @__PURE__ */ jsxs8("div", { style: { display: "flex", alignItems: "center", gap: 8, margin: "4px 0", whiteSpace: "nowrap" }, children: [
-    it.marker ?? /* @__PURE__ */ jsx28("svg", { width: 18, height: 10, style: { flex: "0 0 auto" }, children: /* @__PURE__ */ jsx28("line", { x1: 0, y1: 5, x2: 18, y2: 5, stroke: it.color ?? "#111", strokeWidth: 2, strokeDasharray: it.strokeDasharray }) }),
-    /* @__PURE__ */ jsx28("div", { style: { pointerEvents: "auto" }, children: it.label })
-  ] }, i)) }) }) });
+  return /* @__PURE__ */ jsx28("foreignObject", { x: margin.left, y: margin.top, width: innerWidth, height: innerHeight, opacity, children: /* @__PURE__ */ jsx28("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12 }, children: /* @__PURE__ */ jsx28("div", { style: { position: "absolute", left: left - margin.left, top: top - margin.top, transform: `translate(${align === "right" ? "-100%" : "0"}, ${position.startsWith("top") ? "0" : "-100%"})`, background: bg, border: "1px solid #e5e7eb", borderRadius: 6, padding: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }, children: items.map((it, i) => {
+    var _a, _b;
+    return /* @__PURE__ */ jsxs8("div", { style: { display: "flex", alignItems: "center", gap: 8, margin: "4px 0", whiteSpace: "nowrap" }, children: [
+      (_b = it.marker) != null ? _b : /* @__PURE__ */ jsx28("svg", { width: 18, height: 10, style: { flex: "0 0 auto" }, children: /* @__PURE__ */ jsx28("line", { x1: 0, y1: 5, x2: 18, y2: 5, stroke: (_a = it.color) != null ? _a : "#111", strokeWidth: 2, strokeDasharray: it.strokeDasharray }) }),
+      /* @__PURE__ */ jsx28("div", { style: { pointerEvents: "auto" }, children: it.label })
+    ] }, i);
+  }) }) }) });
 }
 
 // src/Title2D.tsx
@@ -1725,7 +1751,7 @@ function LinearGradient2D({ stops, x1, y1, x2, y2, x, y, width, height, opacity 
       if (isFinite(b.x) && isFinite(b.y) && isFinite(b.width) && isFinite(b.height)) {
         setBbox({ x: b.x, y: b.y, width: b.width, height: b.height });
       }
-    } catch {
+    } catch (e) {
     }
   }, [children, xRange[0], xRange[1], yRange[0], yRange[1]]);
   let sx = margin.left, sy = margin.top, sw = innerWidth, sh = innerHeight;
@@ -1757,8 +1783,8 @@ function LinearGradient2D({ stops, x1, y1, x2, y2, x, y, width, height, opacity 
     gy2 = sy + sh / 2;
   } else if (space === "world") {
     if (typeof x1 === "number" || typeof y1 === "number" || typeof x2 === "number" || typeof y2 === "number") {
-      const p1 = worldToScreen(x1 ?? xRange[0], y1 ?? (yRange[0] + yRange[1]) / 2);
-      const p2 = worldToScreen(x2 ?? xRange[1], y2 ?? (yRange[0] + yRange[1]) / 2);
+      const p1 = worldToScreen(x1 != null ? x1 : xRange[0], y1 != null ? y1 : (yRange[0] + yRange[1]) / 2);
+      const p2 = worldToScreen(x2 != null ? x2 : xRange[1], y2 != null ? y2 : (yRange[0] + yRange[1]) / 2);
       gx1 = p1.x;
       gy1 = p1.y;
       gx2 = p2.x;
@@ -1801,7 +1827,10 @@ function LinearGradient2D({ stops, x1, y1, x2, y2, x, y, width, height, opacity 
   return /* @__PURE__ */ jsxs9("g", { children: [
     /* @__PURE__ */ jsx30("g", { ref: measureRef, style: { opacity: 0, pointerEvents: "none" }, children }),
     /* @__PURE__ */ jsxs9("defs", { children: [
-      /* @__PURE__ */ jsx30("linearGradient", { id: gradId, x1: gx1, y1: gy1, x2: gx2, y2: gy2, gradientUnits: "userSpaceOnUse", children: stops.map((s, i) => /* @__PURE__ */ jsx30("stop", { offset: typeof s.offset === "number" ? String(s.offset) : s.offset, stopColor: s.color, stopOpacity: s.opacity ?? 1 }, i)) }),
+      /* @__PURE__ */ jsx30("linearGradient", { id: gradId, x1: gx1, y1: gy1, x2: gx2, y2: gy2, gradientUnits: "userSpaceOnUse", children: stops.map((s, i) => {
+        var _a;
+        return /* @__PURE__ */ jsx30("stop", { offset: typeof s.offset === "number" ? String(s.offset) : s.offset, stopColor: s.color, stopOpacity: (_a = s.opacity) != null ? _a : 1 }, i);
+      }) }),
       /* @__PURE__ */ jsxs9("mask", { id: maskId, maskUnits: "userSpaceOnUse", children: [
         /* @__PURE__ */ jsx30("rect", { x: sx, y: sy, width: sw, height: sh, fill: "#000" }),
         /* @__PURE__ */ jsx30("g", { children: React14.Children.map(children, toMask) })
@@ -1854,7 +1883,7 @@ function RadialGradient2D({ stops, cx, cy, r, fx, fy, x, y, width, height, opaci
       if (isFinite(b.x) && isFinite(b.y) && isFinite(b.width) && isFinite(b.height)) {
         setBbox({ x: b.x, y: b.y, width: b.width, height: b.height });
       }
-    } catch {
+    } catch (e) {
     }
   }, [children, xRange[0], xRange[1], yRange[0], yRange[1]]);
   let sx = margin.left, sy = margin.top, sw = innerWidth, sh = innerHeight;
@@ -1885,7 +1914,7 @@ function RadialGradient2D({ stops, cx, cy, r, fx, fy, x, y, width, height, opaci
     cpx = bbox.x + bbox.width / 2;
     cpy = bbox.y + bbox.height / 2;
   } else if (space === "world") {
-    const c = worldToScreen(cx ?? defaultCxW, cy ?? defaultCyW);
+    const c = worldToScreen(cx != null ? cx : defaultCxW, cy != null ? cy : defaultCyW);
     cpx = c.x;
     cpy = c.y;
   } else {
@@ -1895,8 +1924,8 @@ function RadialGradient2D({ stops, cx, cy, r, fx, fy, x, y, width, height, opaci
   let rPx;
   if (typeof r === "number") {
     if (space === "world") {
-      const p0 = worldToScreen(cx ?? defaultCxW, cy ?? defaultCyW);
-      const p1 = worldToScreen((cx ?? defaultCxW) + r, cy ?? defaultCyW);
+      const p0 = worldToScreen(cx != null ? cx : defaultCxW, cy != null ? cy : defaultCyW);
+      const p1 = worldToScreen((cx != null ? cx : defaultCxW) + r, cy != null ? cy : defaultCyW);
       rPx = Math.abs(p1.x - p0.x);
     } else {
       rPx = r;
@@ -1909,12 +1938,12 @@ function RadialGradient2D({ stops, cx, cy, r, fx, fy, x, y, width, height, opaci
   let fpx, fpy;
   if (typeof fx === "number" || typeof fy === "number") {
     if (space === "world") {
-      const fp = worldToScreen(fx ?? (cx ?? defaultCxW), fy ?? (cy ?? defaultCyW));
+      const fp = worldToScreen(fx != null ? fx : cx != null ? cx : defaultCxW, fy != null ? fy : cy != null ? cy : defaultCyW);
       fpx = fp.x;
       fpy = fp.y;
     } else {
-      fpx = fx ?? cpx;
-      fpy = fy ?? cpy;
+      fpx = fx != null ? fx : cpx;
+      fpy = fy != null ? fy : cpy;
     }
   } else {
     fpx = cpx;
@@ -1923,7 +1952,10 @@ function RadialGradient2D({ stops, cx, cy, r, fx, fy, x, y, width, height, opaci
   return /* @__PURE__ */ jsxs10("g", { clipPath: `url(#${clipPathId})`, children: [
     /* @__PURE__ */ jsx31("g", { ref: measureRef, style: { opacity: 0, pointerEvents: "none" }, children }),
     /* @__PURE__ */ jsxs10("defs", { children: [
-      /* @__PURE__ */ jsx31("radialGradient", { id: gradId, cx: cpx, cy: cpy, r: rPx, fx: fpx, fy: fpy, gradientUnits: "userSpaceOnUse", children: stops.map((s, i) => /* @__PURE__ */ jsx31("stop", { offset: typeof s.offset === "number" ? String(s.offset) : s.offset, stopColor: s.color, stopOpacity: s.opacity ?? 1 }, i)) }),
+      /* @__PURE__ */ jsx31("radialGradient", { id: gradId, cx: cpx, cy: cpy, r: rPx, fx: fpx, fy: fpy, gradientUnits: "userSpaceOnUse", children: stops.map((s, i) => {
+        var _a;
+        return /* @__PURE__ */ jsx31("stop", { offset: typeof s.offset === "number" ? String(s.offset) : s.offset, stopColor: s.color, stopOpacity: (_a = s.opacity) != null ? _a : 1 }, i);
+      }) }),
       /* @__PURE__ */ jsxs10("mask", { id: maskId, maskUnits: "userSpaceOnUse", children: [
         /* @__PURE__ */ jsx31("rect", { x: sx, y: sy, width: sw, height: sh, fill: "#000" }),
         /* @__PURE__ */ jsx31("g", { children: React15.Children.map(children, makeToMask(reveal)) })
@@ -1973,7 +2005,7 @@ function Image2D({ href, x, y, width, height, preserveAspectRatio = "xMidYMid me
     try {
       const b = el.getBBox();
       if (isFinite(b.x) && isFinite(b.y) && isFinite(b.width) && isFinite(b.height)) setBbox({ x: b.x, y: b.y, width: b.width, height: b.height });
-    } catch {
+    } catch (e) {
     }
   }, [children, xRange[0], xRange[1], yRange[0], yRange[1]]);
   let sx = margin.left, sy = margin.top, sw = innerWidth, sh = innerHeight;
@@ -2002,7 +2034,7 @@ function Image2D({ href, x, y, width, height, preserveAspectRatio = "xMidYMid me
   const defaultYW = (yRange[0] + yRange[1]) / 2;
   if (typeof imageX === "number" || typeof imageY === "number") {
     if (space === "world") {
-      const p = worldToScreen(imageX ?? defaultXW, imageY ?? defaultYW);
+      const p = worldToScreen(imageX != null ? imageX : defaultXW, imageY != null ? imageY : defaultYW);
       if (typeof imageX === "number") ix = p.x;
       if (typeof imageY === "number") iy = p.y;
     } else {
@@ -2012,8 +2044,8 @@ function Image2D({ href, x, y, width, height, preserveAspectRatio = "xMidYMid me
   }
   if (typeof imageWidth === "number") {
     if (space === "world") {
-      const p0 = worldToScreen(imageX ?? defaultXW, defaultYW);
-      const p1 = worldToScreen((imageX ?? defaultXW) + imageWidth, defaultYW);
+      const p0 = worldToScreen(imageX != null ? imageX : defaultXW, defaultYW);
+      const p1 = worldToScreen((imageX != null ? imageX : defaultXW) + imageWidth, defaultYW);
       iw = Math.abs(p1.x - p0.x);
     } else {
       iw = imageWidth;
@@ -2021,8 +2053,8 @@ function Image2D({ href, x, y, width, height, preserveAspectRatio = "xMidYMid me
   }
   if (typeof imageHeight === "number") {
     if (space === "world") {
-      const q0 = worldToScreen(defaultXW, imageY ?? defaultYW);
-      const q1 = worldToScreen(defaultXW, (imageY ?? defaultYW) + imageHeight);
+      const q0 = worldToScreen(defaultXW, imageY != null ? imageY : defaultYW);
+      const q1 = worldToScreen(defaultXW, (imageY != null ? imageY : defaultYW) + imageHeight);
       ih = Math.abs(q1.y - q0.y);
     } else {
       ih = imageHeight;
@@ -2054,6 +2086,8 @@ var ThreeContext = React17.createContext({
 var useThree = () => React17.useContext(ThreeContext);
 
 // src/Plot3D.tsx
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { jsx as jsx33, jsxs as jsxs12 } from "react/jsx-runtime";
 function Plot3D({
   width,
@@ -2075,73 +2109,67 @@ function Plot3D({
   const rafRef = React18.useRef(null);
   const [overlayEl, setOverlayEl] = React18.useState(null);
   React18.useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js");
-        const { OrbitControls } = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js");
-        if (!mounted) return;
-        setThree({ ...THREE, OrbitControls });
-        const _scene = new THREE.Scene();
-        _scene.background = new THREE.Color(background);
-        setScene(_scene);
-        const fov = (camera == null ? void 0 : camera.fov) ?? 50;
-        const near = (camera == null ? void 0 : camera.near) ?? 0.1;
-        const far = (camera == null ? void 0 : camera.far) ?? 1e3;
-        const cam = new THREE.PerspectiveCamera(fov, width / height, near, far);
-        const [cx, cy, cz] = (camera == null ? void 0 : camera.position) ?? [-3, 3, 6];
-        cam.position.set(cx, cy, cz);
-        const look = (camera == null ? void 0 : camera.lookAt) ?? [0, 0, 0];
-        cam.lookAt(...look);
-        setCamera3d(cam);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-        setRenderer3d(renderer);
-        const container = containerRef.current;
-        container.innerHTML = "";
-        container.appendChild(renderer.domElement);
-        const ambient = new THREE.AmbientLight(16777215, 0.6);
-        _scene.add(ambient);
-        const dir = new THREE.DirectionalLight(16777215, 0.8);
-        dir.position.set(5, 8, 4);
-        _scene.add(dir);
-        if (orbitControls) {
-          const controls = new OrbitControls(cam, renderer.domElement);
-          controls.enableDamping = true;
-          controls.dampingFactor = 0.08;
-          controlsRef.current = controls;
-        }
-        const onResize = () => {
-          const w = width;
-          const h = height;
-          renderer.setSize(w, h);
-          cam.aspect = w / h;
-          cam.updateProjectionMatrix();
-        };
-        onResize();
-        const animate = () => {
-          var _a2, _b2;
-          rafRef.current = requestAnimationFrame(animate);
-          (_b2 = (_a2 = controlsRef.current) == null ? void 0 : _a2.update) == null ? void 0 : _b2.call(_a2);
-          renderer.render(_scene, cam);
-        };
-        animate();
-      } catch (err) {
-        console.error("Failed to load THREE:", err);
+    var _a2, _b2, _c2, _d2, _e2;
+    try {
+      setThree(__spreadProps(__spreadValues({}, THREE), { OrbitControls }));
+      const _scene = new THREE.Scene();
+      _scene.background = new THREE.Color(background);
+      setScene(_scene);
+      const fov = (_a2 = camera == null ? void 0 : camera.fov) != null ? _a2 : 50;
+      const near = (_b2 = camera == null ? void 0 : camera.near) != null ? _b2 : 0.1;
+      const far = (_c2 = camera == null ? void 0 : camera.far) != null ? _c2 : 1e3;
+      const cam = new THREE.PerspectiveCamera(fov, width / height, near, far);
+      const [cx, cy, cz] = (_d2 = camera == null ? void 0 : camera.position) != null ? _d2 : [-3, 3, 6];
+      cam.position.set(cx, cy, cz);
+      const look = (_e2 = camera == null ? void 0 : camera.lookAt) != null ? _e2 : [0, 0, 0];
+      cam.lookAt(...look);
+      setCamera3d(cam);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+      setRenderer3d(renderer);
+      const container = containerRef.current;
+      container.innerHTML = "";
+      container.appendChild(renderer.domElement);
+      const ambient = new THREE.AmbientLight(16777215, 0.6);
+      _scene.add(ambient);
+      const dir = new THREE.DirectionalLight(16777215, 0.8);
+      dir.position.set(5, 8, 4);
+      _scene.add(dir);
+      if (orbitControls) {
+        const controls = new OrbitControls(cam, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controlsRef.current = controls;
       }
-    })();
+      const onResize = () => {
+        const w = width;
+        const h = height;
+        renderer.setSize(w, h);
+        cam.aspect = w / h;
+        cam.updateProjectionMatrix();
+      };
+      onResize();
+      const animate = () => {
+        var _a3, _b3;
+        rafRef.current = requestAnimationFrame(animate);
+        (_b3 = (_a3 = controlsRef.current) == null ? void 0 : _a3.update) == null ? void 0 : _b3.call(_a3);
+        renderer.render(_scene, cam);
+      };
+      animate();
+    } catch (err) {
+      console.error("Failed to load THREE:", err);
+    }
     return () => {
-      var _a2, _b2, _c2;
-      mounted = false;
+      var _a3, _b3, _c3;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       try {
-        (_b2 = (_a2 = controlsRef.current) == null ? void 0 : _a2.dispose) == null ? void 0 : _b2.call(_a2);
-      } catch {
+        (_b3 = (_a3 = controlsRef.current) == null ? void 0 : _a3.dispose) == null ? void 0 : _b3.call(_a3);
+      } catch (e) {
       }
       try {
-        (_c2 = renderer3d == null ? void 0 : renderer3d.dispose) == null ? void 0 : _c2.call(renderer3d);
-      } catch {
+        (_c3 = renderer3d == null ? void 0 : renderer3d.dispose) == null ? void 0 : _c3.call(renderer3d);
+      } catch (e) {
       }
       if (containerRef.current) containerRef.current.innerHTML = "";
     };
@@ -2153,7 +2181,7 @@ function Plot3D({
     renderer: renderer3d,
     htmlOverlay: overlayEl
   }), [three, scene, camera3d, renderer3d, overlayEl]);
-  return /* @__PURE__ */ jsxs12("div", { className, style: { position: "relative", width, height, overscrollBehavior: "contain", touchAction: "none", ...style }, children: [
+  return /* @__PURE__ */ jsxs12("div", { className, style: __spreadValues({ position: "relative", width, height, overscrollBehavior: "contain", touchAction: "none" }, style), children: [
     /* @__PURE__ */ jsx33("div", { ref: containerRef, style: { position: "absolute", inset: 0 } }),
     /* @__PURE__ */ jsx33(ThreeContext.Provider, { value: ctxValue, children }),
     /* @__PURE__ */ jsx33("div", { ref: setOverlayEl, style: { position: "absolute", inset: 0, pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222" } })
@@ -2170,15 +2198,15 @@ var useThreeParent = () => React19.useContext(ThreeParentContext);
 
 // src/Axes3D.tsx
 function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows = false }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   React20.useEffect(() => {
-    if (!THREE || !scene) return;
-    const target = parent ?? scene;
+    if (!THREE2 || !scene) return;
+    const target = parent != null ? parent : scene;
     if (!thickness || thickness <= 0) {
-      const group2 = new THREE.Group();
+      const group2 = new THREE2.Group();
       const mkLine = (axis, color) => {
-        const mat = new THREE.LineBasicMaterial({ color });
+        const mat = new THREE2.LineBasicMaterial({ color });
         const pos = new Float32Array([
           axis === "x" ? -size : 0,
           axis === "y" ? -size : 0,
@@ -2187,17 +2215,17 @@ function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows = false
           axis === "y" ? size : 0,
           axis === "z" ? size : 0
         ]);
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-        const line = new THREE.Line(geo, mat);
+        const geo = new THREE2.BufferGeometry();
+        geo.setAttribute("position", new THREE2.BufferAttribute(pos, 3));
+        const line = new THREE2.Line(geo, mat);
         group2.add(line);
         const cones = [];
         if (arrows) {
           const h = Math.max(size * 0.24, 0.12);
           const r = Math.max(size * 0.06, 0.04);
-          const coneGeo = new THREE.ConeGeometry(r, h, 16);
-          const coneMat = new THREE.MeshStandardMaterial({ color });
-          const coneP = new THREE.Mesh(coneGeo, coneMat);
+          const coneGeo = new THREE2.ConeGeometry(r, h, 16);
+          const coneMat = new THREE2.MeshStandardMaterial({ color });
+          const coneP = new THREE2.Mesh(coneGeo, coneMat);
           if (axis === "x") {
             coneP.rotation.z = -Math.PI / 2;
             coneP.position.set(size, 0, 0);
@@ -2212,7 +2240,7 @@ function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows = false
           group2.add(coneP);
           cones.push(coneP);
           if (negativeArrows) {
-            const coneN = new THREE.Mesh(coneGeo.clone(), coneMat);
+            const coneN = new THREE2.Mesh(coneGeo.clone(), coneMat);
             if (axis === "x") {
               coneN.rotation.z = Math.PI / 2;
               coneN.position.set(-size, 0, 0);
@@ -2249,17 +2277,17 @@ function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows = false
         cleanups2.forEach((fn) => {
           try {
             fn();
-          } catch {
+          } catch (e) {
           }
         });
       };
     }
-    const group = new THREE.Group();
+    const group = new THREE2.Group();
     const mkAxis = (axis, color) => {
       const len = size * 2;
-      const cylGeo = new THREE.CylinderGeometry(thickness, thickness, len, 16);
-      const mat = new THREE.MeshStandardMaterial({ color });
-      const cyl = new THREE.Mesh(cylGeo, mat);
+      const cylGeo = new THREE2.CylinderGeometry(thickness, thickness, len, 16);
+      const mat = new THREE2.MeshStandardMaterial({ color });
+      const cyl = new THREE2.Mesh(cylGeo, mat);
       if (axis === "x") {
         cyl.rotation.z = Math.PI / 2;
       } else if (axis === "y") {
@@ -2271,9 +2299,9 @@ function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows = false
       if (arrows) {
         const h = Math.max(size * 0.24, thickness * 6);
         const r = Math.max(thickness * 2, size * 0.06);
-        const coneGeo = new THREE.ConeGeometry(r, h, 16);
-        const coneMat = new THREE.MeshStandardMaterial({ color });
-        const coneP = new THREE.Mesh(coneGeo, coneMat);
+        const coneGeo = new THREE2.ConeGeometry(r, h, 16);
+        const coneMat = new THREE2.MeshStandardMaterial({ color });
+        const coneP = new THREE2.Mesh(coneGeo, coneMat);
         if (axis === "x") {
           coneP.rotation.z = -Math.PI / 2;
           coneP.position.set(size, 0, 0);
@@ -2288,7 +2316,7 @@ function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows = false
         group.add(coneP);
         cones.push(coneP);
         if (negativeArrows) {
-          const coneN = new THREE.Mesh(coneGeo.clone(), coneMat);
+          const coneN = new THREE2.Mesh(coneGeo.clone(), coneMat);
           if (axis === "x") {
             coneN.rotation.z = Math.PI / 2;
             coneN.position.set(-size, 0, 0);
@@ -2325,107 +2353,107 @@ function Axes3D({ size = 2, thickness = 0, arrows = true, negativeArrows = false
       cleanups.forEach((fn) => {
         try {
           fn();
-        } catch {
+        } catch (e) {
         }
       });
     };
-  }, [THREE, scene, parent, size, thickness, arrows, negativeArrows]);
+  }, [THREE2, scene, parent, size, thickness, arrows, negativeArrows]);
   return null;
 }
 
 // src/Grid3D.tsx
 import React21 from "react";
 function Grid3D({ size = 10, divisions = 10, color1 = 13421772, color2 = 15067115 }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   React21.useEffect(() => {
-    if (!THREE || !scene) return;
-    const grid = new THREE.GridHelper(size, divisions, color1, color2);
-    (parent ?? scene).add(grid);
+    if (!THREE2 || !scene) return;
+    const grid = new THREE2.GridHelper(size, divisions, color1, color2);
+    (parent != null ? parent : scene).add(grid);
     return () => {
-      (parent ?? scene).remove(grid);
+      (parent != null ? parent : scene).remove(grid);
     };
-  }, [THREE, scene, parent, size, divisions, color1, color2]);
+  }, [THREE2, scene, parent, size, divisions, color1, color2]);
   return null;
 }
 
 // src/Box3D.tsx
 import React22 from "react";
 function Box3D({ size = [1, 1, 1], position = [0, 0, 0], color = 15680580, wireframe = false }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const meshRef = React22.useRef(null);
   React22.useEffect(() => {
-    if (!THREE || !scene) return;
-    const geo = new THREE.BoxGeometry(size[0], size[1], size[2]);
-    const mat = new THREE.MeshStandardMaterial({ color, wireframe });
-    const mesh = new THREE.Mesh(geo, mat);
+    if (!THREE2 || !scene) return;
+    const geo = new THREE2.BoxGeometry(size[0], size[1], size[2]);
+    const mat = new THREE2.MeshStandardMaterial({ color, wireframe });
+    const mesh = new THREE2.Mesh(geo, mat);
     mesh.position.set(...position);
-    (parent ?? scene).add(mesh);
+    (parent != null ? parent : scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      (parent ?? scene).remove(mesh);
+      (parent != null ? parent : scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   React22.useEffect(() => {
     if (!meshRef.current) return;
     meshRef.current.position.set(...position);
   }, [position == null ? void 0 : position[0], position == null ? void 0 : position[1], position == null ? void 0 : position[2]]);
   React22.useEffect(() => {
     var _a;
-    if (!meshRef.current || !THREE) return;
+    if (!meshRef.current || !THREE2) return;
     const old = meshRef.current.geometry;
-    const geo = new THREE.BoxGeometry(size[0], size[1], size[2]);
+    const geo = new THREE2.BoxGeometry(size[0], size[1], size[2]);
     meshRef.current.geometry = geo;
     (_a = old == null ? void 0 : old.dispose) == null ? void 0 : _a.call(old);
   }, [size == null ? void 0 : size[0], size == null ? void 0 : size[1], size == null ? void 0 : size[2]]);
   React22.useEffect(() => {
-    if (!meshRef.current || !THREE) return;
-    meshRef.current.material.color = new THREE.Color(color);
+    if (!meshRef.current || !THREE2) return;
+    meshRef.current.material.color = new THREE2.Color(color);
     meshRef.current.material.wireframe = wireframe;
-  }, [color, wireframe, THREE]);
+  }, [color, wireframe, THREE2]);
   return null;
 }
 
 // src/Sphere3D.tsx
 import React23 from "react";
 function Sphere3D({ radius = 0.6, widthSegments = 32, heightSegments = 16, position = [0, 0, 0], color = 1096065, wireframe = false }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const meshRef = React23.useRef(null);
   React23.useEffect(() => {
-    if (!THREE || !scene) return;
-    const geo = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
-    const mat = new THREE.MeshStandardMaterial({ color, wireframe });
-    const mesh = new THREE.Mesh(geo, mat);
+    if (!THREE2 || !scene) return;
+    const geo = new THREE2.SphereGeometry(radius, widthSegments, heightSegments);
+    const mat = new THREE2.MeshStandardMaterial({ color, wireframe });
+    const mesh = new THREE2.Mesh(geo, mat);
     mesh.position.set(...position);
-    (parent ?? scene).add(mesh);
+    (parent != null ? parent : scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      (parent ?? scene).remove(mesh);
+      (parent != null ? parent : scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   React23.useEffect(() => {
     if (!meshRef.current) return;
     meshRef.current.position.set(...position);
   }, [position == null ? void 0 : position[0], position == null ? void 0 : position[1], position == null ? void 0 : position[2]]);
   React23.useEffect(() => {
     var _a;
-    if (!meshRef.current || !THREE) return;
+    if (!meshRef.current || !THREE2) return;
     const old = meshRef.current.geometry;
-    const geo = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+    const geo = new THREE2.SphereGeometry(radius, widthSegments, heightSegments);
     meshRef.current.geometry = geo;
     (_a = old == null ? void 0 : old.dispose) == null ? void 0 : _a.call(old);
   }, [radius, widthSegments, heightSegments]);
   React23.useEffect(() => {
-    if (!meshRef.current || !THREE) return;
-    meshRef.current.material.color = new THREE.Color(color);
+    if (!meshRef.current || !THREE2) return;
+    meshRef.current.material.color = new THREE2.Color(color);
     meshRef.current.material.wireframe = wireframe;
-  }, [color, wireframe, THREE]);
+  }, [color, wireframe, THREE2]);
   return null;
 }
 
@@ -2433,12 +2461,12 @@ function Sphere3D({ radius = 0.6, widthSegments = 32, heightSegments = 16, posit
 import React24 from "react";
 import { jsx as jsx34 } from "react/jsx-runtime";
 function Label3D({ position, children, align = "left", vAlign = "top", dx = 0, dy = 0, className, style }) {
-  const { THREE, camera, renderer, htmlOverlay } = useThree();
+  const { THREE: THREE2, camera, renderer, htmlOverlay } = useThree();
   const elRef = React24.useRef(null);
   React24.useEffect(() => {
-    if (!THREE || !camera || !renderer || !htmlOverlay || !elRef.current) return;
+    if (!THREE2 || !camera || !renderer || !htmlOverlay || !elRef.current) return;
     const el = elRef.current;
-    const v = new THREE.Vector3();
+    const v = new THREE2.Vector3();
     let stopped = false;
     const update = () => {
       if (stopped) return;
@@ -2451,7 +2479,7 @@ function Label3D({ position, children, align = "left", vAlign = "top", dx = 0, d
         const ay = vAlign === "middle" ? -50 : vAlign === "bottom" ? -100 : 0;
         el.style.transform = `translate(${Math.round(x + dx)}px, ${Math.round(y + dy)}px) translate(${ax}%, ${ay}%)`;
         el.style.display = v.z < 1 ? "block" : "none";
-      } catch {
+      } catch (e) {
       }
       requestAnimationFrame(update);
     };
@@ -2460,9 +2488,9 @@ function Label3D({ position, children, align = "left", vAlign = "top", dx = 0, d
       stopped = true;
       cancelAnimationFrame(id);
     };
-  }, [THREE, camera, renderer, htmlOverlay, position == null ? void 0 : position[0], position == null ? void 0 : position[1], position == null ? void 0 : position[2], align, vAlign, dx, dy]);
+  }, [THREE2, camera, renderer, htmlOverlay, position == null ? void 0 : position[0], position == null ? void 0 : position[1], position == null ? void 0 : position[2], align, vAlign, dx, dy]);
   if (!htmlOverlay) return null;
-  return /* @__PURE__ */ jsx34("div", { ref: elRef, className, style: { position: "absolute", pointerEvents: "none", ...style }, children });
+  return /* @__PURE__ */ jsx34("div", { ref: elRef, className, style: __spreadValues({ position: "absolute", pointerEvents: "none" }, style), children });
 }
 
 // src/Legend3D.tsx
@@ -2487,33 +2515,36 @@ function Legend3D({ items, position = "top-right", bg = "rgba(255,255,255,0.92)"
     pointerEvents: "none",
     fontSize: 12
   };
-  return /* @__PURE__ */ jsx35("div", { style, children: items.map((it, i) => /* @__PURE__ */ jsxs13("div", { style: { display: "flex", alignItems: "center", gap: 8, margin: "4px 0", whiteSpace: "nowrap" }, children: [
-    it.marker ?? /* @__PURE__ */ jsx35("svg", { width: 18, height: 10, style: { flex: "0 0 auto" }, children: /* @__PURE__ */ jsx35("line", { x1: 0, y1: 5, x2: 18, y2: 5, stroke: it.color ?? "#111", strokeWidth: 2 }) }),
-    /* @__PURE__ */ jsx35("div", { children: it.label })
-  ] }, i)) });
+  return /* @__PURE__ */ jsx35("div", { style, children: items.map((it, i) => {
+    var _a, _b;
+    return /* @__PURE__ */ jsxs13("div", { style: { display: "flex", alignItems: "center", gap: 8, margin: "4px 0", whiteSpace: "nowrap" }, children: [
+      (_b = it.marker) != null ? _b : /* @__PURE__ */ jsx35("svg", { width: 18, height: 10, style: { flex: "0 0 auto" }, children: /* @__PURE__ */ jsx35("line", { x1: 0, y1: 5, x2: 18, y2: 5, stroke: (_a = it.color) != null ? _a : "#111", strokeWidth: 2 }) }),
+      /* @__PURE__ */ jsx35("div", { children: it.label })
+    ] }, i);
+  }) });
 }
 
 // src/Torus3D.tsx
 import React25 from "react";
 function Torus3D({ radius = 1, tube = 0.3, radialSegments = 16, tubularSegments = 48, arc = Math.PI * 2, position = [0, 0, 0], rotation = [0, 0, 0], color = 9647082, wireframe = false }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const meshRef = React25.useRef(null);
   React25.useEffect(() => {
-    if (!THREE || !scene) return;
-    const geo = new THREE.TorusGeometry(radius, tube, radialSegments, tubularSegments, arc);
-    const mat = new THREE.MeshStandardMaterial({ color, wireframe });
-    const mesh = new THREE.Mesh(geo, mat);
+    if (!THREE2 || !scene) return;
+    const geo = new THREE2.TorusGeometry(radius, tube, radialSegments, tubularSegments, arc);
+    const mat = new THREE2.MeshStandardMaterial({ color, wireframe });
+    const mesh = new THREE2.Mesh(geo, mat);
     mesh.position.set(...position);
     mesh.rotation.set(...rotation);
-    (parent ?? scene).add(mesh);
+    (parent != null ? parent : scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      (parent ?? scene).remove(mesh);
+      (parent != null ? parent : scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene]);
+  }, [THREE2, scene]);
   React25.useEffect(() => {
     var _a;
     (_a = meshRef.current) == null ? void 0 : _a.position.set(...position);
@@ -2524,41 +2555,41 @@ function Torus3D({ radius = 1, tube = 0.3, radialSegments = 16, tubularSegments 
   }, [rotation == null ? void 0 : rotation[0], rotation == null ? void 0 : rotation[1], rotation == null ? void 0 : rotation[2]]);
   React25.useEffect(() => {
     var _a;
-    if (!meshRef.current || !THREE) return;
+    if (!meshRef.current || !THREE2) return;
     const old = meshRef.current.geometry;
-    const geo = new THREE.TorusGeometry(radius, tube, radialSegments, tubularSegments, arc);
+    const geo = new THREE2.TorusGeometry(radius, tube, radialSegments, tubularSegments, arc);
     meshRef.current.geometry = geo;
     (_a = old == null ? void 0 : old.dispose) == null ? void 0 : _a.call(old);
   }, [radius, tube, radialSegments, tubularSegments, arc]);
   React25.useEffect(() => {
-    if (!meshRef.current || !THREE) return;
-    meshRef.current.material.color = new THREE.Color(color);
+    if (!meshRef.current || !THREE2) return;
+    meshRef.current.material.color = new THREE2.Color(color);
     meshRef.current.material.wireframe = wireframe;
-  }, [color, wireframe, THREE]);
+  }, [color, wireframe, THREE2]);
   return null;
 }
 
 // src/Cylinder3D.tsx
 import React26 from "react";
 function Cylinder3D({ radiusTop = 0.4, radiusBottom = 0.4, height = 1.2, radialSegments = 32, openEnded = false, position = [0, 0, 0], rotation = [0, 0, 0], color = 6583435, wireframe = false }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const meshRef = React26.useRef(null);
   React26.useEffect(() => {
-    if (!THREE || !scene) return;
-    const geo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, 1, openEnded);
-    const mat = new THREE.MeshStandardMaterial({ color, wireframe });
-    const mesh = new THREE.Mesh(geo, mat);
+    if (!THREE2 || !scene) return;
+    const geo = new THREE2.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, 1, openEnded);
+    const mat = new THREE2.MeshStandardMaterial({ color, wireframe });
+    const mesh = new THREE2.Mesh(geo, mat);
     mesh.position.set(...position);
     mesh.rotation.set(...rotation);
-    (parent ?? scene).add(mesh);
+    (parent != null ? parent : scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      (parent ?? scene).remove(mesh);
+      (parent != null ? parent : scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   React26.useEffect(() => {
     var _a;
     (_a = meshRef.current) == null ? void 0 : _a.position.set(...position);
@@ -2569,40 +2600,40 @@ function Cylinder3D({ radiusTop = 0.4, radiusBottom = 0.4, height = 1.2, radialS
   }, [rotation == null ? void 0 : rotation[0], rotation == null ? void 0 : rotation[1], rotation == null ? void 0 : rotation[2]]);
   React26.useEffect(() => {
     var _a;
-    if (!meshRef.current || !THREE) return;
+    if (!meshRef.current || !THREE2) return;
     const old = meshRef.current.geometry;
-    meshRef.current.geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, 1, openEnded);
+    meshRef.current.geometry = new THREE2.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, 1, openEnded);
     (_a = old == null ? void 0 : old.dispose) == null ? void 0 : _a.call(old);
   }, [radiusTop, radiusBottom, height, radialSegments, openEnded]);
   React26.useEffect(() => {
-    if (!meshRef.current || !THREE) return;
-    meshRef.current.material.color = new THREE.Color(color);
+    if (!meshRef.current || !THREE2) return;
+    meshRef.current.material.color = new THREE2.Color(color);
     meshRef.current.material.wireframe = wireframe;
-  }, [color, wireframe, THREE]);
+  }, [color, wireframe, THREE2]);
   return null;
 }
 
 // src/Cone3D.tsx
 import React27 from "react";
 function Cone3D({ radius = 0.45, height = 1.2, radialSegments = 32, openEnded = false, position = [0, 0, 0], rotation = [0, 0, 0], color = 16096779, wireframe = false }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const meshRef = React27.useRef(null);
   React27.useEffect(() => {
-    if (!THREE || !scene) return;
-    const geo = new THREE.ConeGeometry(radius, height, radialSegments, 1, openEnded);
-    const mat = new THREE.MeshStandardMaterial({ color, wireframe });
-    const mesh = new THREE.Mesh(geo, mat);
+    if (!THREE2 || !scene) return;
+    const geo = new THREE2.ConeGeometry(radius, height, radialSegments, 1, openEnded);
+    const mat = new THREE2.MeshStandardMaterial({ color, wireframe });
+    const mesh = new THREE2.Mesh(geo, mat);
     mesh.position.set(...position);
     mesh.rotation.set(...rotation);
-    (parent ?? scene).add(mesh);
+    (parent != null ? parent : scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      (parent ?? scene).remove(mesh);
+      (parent != null ? parent : scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   React27.useEffect(() => {
     var _a;
     (_a = meshRef.current) == null ? void 0 : _a.position.set(...position);
@@ -2613,27 +2644,27 @@ function Cone3D({ radius = 0.45, height = 1.2, radialSegments = 32, openEnded = 
   }, [rotation == null ? void 0 : rotation[0], rotation == null ? void 0 : rotation[1], rotation == null ? void 0 : rotation[2]]);
   React27.useEffect(() => {
     var _a;
-    if (!meshRef.current || !THREE) return;
+    if (!meshRef.current || !THREE2) return;
     const old = meshRef.current.geometry;
-    meshRef.current.geometry = new THREE.ConeGeometry(radius, height, radialSegments, 1, openEnded);
+    meshRef.current.geometry = new THREE2.ConeGeometry(radius, height, radialSegments, 1, openEnded);
     (_a = old == null ? void 0 : old.dispose) == null ? void 0 : _a.call(old);
   }, [radius, height, radialSegments, openEnded]);
   React27.useEffect(() => {
-    if (!meshRef.current || !THREE) return;
-    meshRef.current.material.color = new THREE.Color(color);
+    if (!meshRef.current || !THREE2) return;
+    meshRef.current.material.color = new THREE2.Color(color);
     meshRef.current.material.wireframe = wireframe;
-  }, [color, wireframe, THREE]);
+  }, [color, wireframe, THREE2]);
   return null;
 }
 
 // src/Surface3D.tsx
 import React28 from "react";
 function Surface3D({ xRange, yRange, xSegments = 64, ySegments = 48, f, color = 2278750, colorMap, wireframe = false, doubleSided = true }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const meshRef = React28.useRef(null);
   const buildGeometry = React28.useCallback(() => {
-    if (!THREE) return null;
+    if (!THREE2) return null;
     const nx = Math.max(1, xSegments);
     const ny = Math.max(1, ySegments);
     const nCols = nx + 1;
@@ -2652,7 +2683,7 @@ function Surface3D({ xRange, yRange, xSegments = 64, ySegments = 48, f, color = 
         positions[idx++] = z;
         positions[idx++] = y;
         if (colors) {
-          const col = new THREE.Color(colorMap(x, y, z));
+          const col = new THREE2.Color(colorMap(x, y, z));
           colors[cidx++] = col.r;
           colors[cidx++] = col.g;
           colors[cidx++] = col.b;
@@ -2669,27 +2700,27 @@ function Surface3D({ xRange, yRange, xSegments = 64, ySegments = 48, f, color = 
         indices.push(a, b, d, b, c, d);
       }
     }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    const geo = new THREE2.BufferGeometry();
+    geo.setAttribute("position", new THREE2.BufferAttribute(positions, 3));
     geo.setIndex(indices);
-    if (colors) geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    if (colors) geo.setAttribute("color", new THREE2.BufferAttribute(colors, 3));
     geo.computeVertexNormals();
     return geo;
-  }, [THREE, xRange == null ? void 0 : xRange[0], xRange == null ? void 0 : xRange[1], yRange == null ? void 0 : yRange[0], yRange == null ? void 0 : yRange[1], xSegments, ySegments, f, colorMap]);
+  }, [THREE2, xRange == null ? void 0 : xRange[0], xRange == null ? void 0 : xRange[1], yRange == null ? void 0 : yRange[0], yRange == null ? void 0 : yRange[1], xSegments, ySegments, f, colorMap]);
   React28.useEffect(() => {
-    if (!THREE || !scene) return;
+    if (!THREE2 || !scene) return;
     const geo = buildGeometry();
     if (!geo) return;
-    const mat = new THREE.MeshStandardMaterial({ color, wireframe, vertexColors: !!colorMap, side: doubleSided ? THREE.DoubleSide : THREE.FrontSide });
-    const mesh = new THREE.Mesh(geo, mat);
-    (parent ?? scene).add(mesh);
+    const mat = new THREE2.MeshStandardMaterial({ color, wireframe, vertexColors: !!colorMap, side: doubleSided ? THREE2.DoubleSide : THREE2.FrontSide });
+    const mesh = new THREE2.Mesh(geo, mat);
+    (parent != null ? parent : scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      (parent ?? scene).remove(mesh);
+      (parent != null ? parent : scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   React28.useEffect(() => {
     var _a;
     if (!meshRef.current) return;
@@ -2700,25 +2731,25 @@ function Surface3D({ xRange, yRange, xSegments = 64, ySegments = 48, f, color = 
     (_a = old == null ? void 0 : old.dispose) == null ? void 0 : _a.call(old);
   }, [buildGeometry]);
   React28.useEffect(() => {
-    if (!meshRef.current || !THREE) return;
+    if (!meshRef.current || !THREE2) return;
     const mat = meshRef.current.material;
-    mat.color = new THREE.Color(color);
+    mat.color = new THREE2.Color(color);
     mat.wireframe = wireframe;
     mat.vertexColors = !!colorMap;
-    mat.side = doubleSided ? THREE.DoubleSide : THREE.FrontSide;
+    mat.side = doubleSided ? THREE2.DoubleSide : THREE2.FrontSide;
     mat.needsUpdate = true;
-  }, [color, wireframe, colorMap, doubleSided, THREE]);
+  }, [color, wireframe, colorMap, doubleSided, THREE2]);
   return null;
 }
 
 // src/ParametricSurface3D.tsx
 import React29 from "react";
 function ParametricSurface3D({ uRange, vRange, uSegments = 80, vSegments = 30, f, color = 959977, colorMap, wireframe = false, doubleSided = true }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const meshRef = React29.useRef(null);
   const buildGeometry = React29.useCallback(() => {
-    if (!THREE) return null;
+    if (!THREE2) return null;
     const nu = Math.max(1, uSegments);
     const nv = Math.max(1, vSegments);
     const positions = new Float32Array((nu + 1) * (nv + 1) * 3);
@@ -2733,7 +2764,7 @@ function ParametricSurface3D({ uRange, vRange, uSegments = 80, vSegments = 30, f
         positions[idx++] = y;
         positions[idx++] = z;
         if (colors) {
-          const col = new THREE.Color(colorMap(u, v, x, y, z));
+          const col = new THREE2.Color(colorMap(u, v, x, y, z));
           colors[cidx++] = col.r;
           colors[cidx++] = col.g;
           colors[cidx++] = col.b;
@@ -2750,27 +2781,27 @@ function ParametricSurface3D({ uRange, vRange, uSegments = 80, vSegments = 30, f
         indices.push(a, b, d, b, c, d);
       }
     }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    if (colors) geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    const geo = new THREE2.BufferGeometry();
+    geo.setAttribute("position", new THREE2.BufferAttribute(positions, 3));
+    if (colors) geo.setAttribute("color", new THREE2.BufferAttribute(colors, 3));
     geo.setIndex(indices);
     geo.computeVertexNormals();
     return geo;
-  }, [THREE, uRange == null ? void 0 : uRange[0], uRange == null ? void 0 : uRange[1], vRange == null ? void 0 : vRange[0], vRange == null ? void 0 : vRange[1], uSegments, vSegments, f, colorMap]);
+  }, [THREE2, uRange == null ? void 0 : uRange[0], uRange == null ? void 0 : uRange[1], vRange == null ? void 0 : vRange[0], vRange == null ? void 0 : vRange[1], uSegments, vSegments, f, colorMap]);
   React29.useEffect(() => {
-    if (!THREE || !scene) return;
+    if (!THREE2 || !scene) return;
     const geo = buildGeometry();
     if (!geo) return;
-    const mat = new THREE.MeshStandardMaterial({ color, wireframe, vertexColors: !!colorMap, side: doubleSided ? THREE.DoubleSide : THREE.FrontSide });
-    const mesh = new THREE.Mesh(geo, mat);
-    (parent ?? scene).add(mesh);
+    const mat = new THREE2.MeshStandardMaterial({ color, wireframe, vertexColors: !!colorMap, side: doubleSided ? THREE2.DoubleSide : THREE2.FrontSide });
+    const mesh = new THREE2.Mesh(geo, mat);
+    (parent != null ? parent : scene).add(mesh);
     meshRef.current = mesh;
     return () => {
-      (parent ?? scene).remove(mesh);
+      (parent != null ? parent : scene).remove(mesh);
       geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   React29.useEffect(() => {
     var _a;
     if (!meshRef.current) return;
@@ -2781,26 +2812,27 @@ function ParametricSurface3D({ uRange, vRange, uSegments = 80, vSegments = 30, f
     (_a = old == null ? void 0 : old.dispose) == null ? void 0 : _a.call(old);
   }, [buildGeometry]);
   React29.useEffect(() => {
-    if (!meshRef.current || !THREE) return;
+    if (!meshRef.current || !THREE2) return;
     const mat = meshRef.current.material;
-    mat.color = new THREE.Color(color);
+    mat.color = new THREE2.Color(color);
     mat.wireframe = wireframe;
     mat.vertexColors = !!colorMap;
-    mat.side = doubleSided ? THREE.DoubleSide : THREE.FrontSide;
+    mat.side = doubleSided ? THREE2.DoubleSide : THREE2.FrontSide;
     mat.needsUpdate = true;
-  }, [color, wireframe, colorMap, doubleSided, THREE]);
+  }, [color, wireframe, colorMap, doubleSided, THREE2]);
   return null;
 }
 
 // src/Scatter3D.tsx
 import React30 from "react";
 function Scatter3D({ points, color = 3900150, colors, colorMap, size = 6, opacity = 1 }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const ptsRef = React30.useRef(null);
   const buildGeometry = React30.useCallback(() => {
-    if (!THREE) return null;
-    const n = (points == null ? void 0 : points.length) ?? 0;
+    var _a;
+    if (!THREE2) return null;
+    const n = (_a = points == null ? void 0 : points.length) != null ? _a : 0;
     const pos = new Float32Array(n * 3);
     const useVertexColors = !!(colors == null ? void 0 : colors.length) || !!colorMap;
     const col = useVertexColors ? new Float32Array(n * 3) : null;
@@ -2811,7 +2843,7 @@ function Scatter3D({ points, color = 3900150, colors, colorMap, size = 6, opacit
       pos[j + 1] = y;
       pos[j + 2] = z;
       if (col) {
-        const c = new THREE.Color(
+        const c = new THREE2.Color(
           colors && colors[i] !== void 0 ? colors[i] : colorMap ? colorMap(x, y, z, i) : color
         );
         col[j] = c.r;
@@ -2819,16 +2851,16 @@ function Scatter3D({ points, color = 3900150, colors, colorMap, size = 6, opacit
         col[j + 2] = c.b;
       }
     }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    if (col) geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    const geo = new THREE2.BufferGeometry();
+    geo.setAttribute("position", new THREE2.BufferAttribute(pos, 3));
+    if (col) geo.setAttribute("color", new THREE2.BufferAttribute(col, 3));
     return { geo, vertexColors: !!col };
-  }, [THREE, points, colors, colorMap, color]);
+  }, [THREE2, points, colors, colorMap, color]);
   React30.useEffect(() => {
-    if (!THREE || !scene) return;
+    if (!THREE2 || !scene) return;
     const built = buildGeometry();
     if (!built) return;
-    const mat = new THREE.PointsMaterial({
+    const mat = new THREE2.PointsMaterial({
       color: (colors == null ? void 0 : colors.length) || colorMap ? 16777215 : color,
       vertexColors: !!((colors == null ? void 0 : colors.length) || colorMap),
       size,
@@ -2836,15 +2868,15 @@ function Scatter3D({ points, color = 3900150, colors, colorMap, size = 6, opacit
       opacity,
       transparent: opacity < 1
     });
-    const pointsObj = new THREE.Points(built.geo, mat);
-    (parent ?? scene).add(pointsObj);
+    const pointsObj = new THREE2.Points(built.geo, mat);
+    (parent != null ? parent : scene).add(pointsObj);
     ptsRef.current = pointsObj;
     return () => {
-      (parent ?? scene).remove(pointsObj);
+      (parent != null ? parent : scene).remove(pointsObj);
       built.geo.dispose();
       mat.dispose();
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   React30.useEffect(() => {
     var _a;
     const obj = ptsRef.current;
@@ -2858,15 +2890,15 @@ function Scatter3D({ points, color = 3900150, colors, colorMap, size = 6, opacit
   }, [buildGeometry]);
   React30.useEffect(() => {
     const obj = ptsRef.current;
-    if (!obj || !THREE) return;
+    if (!obj || !THREE2) return;
     obj.material.size = size;
     obj.material.opacity = opacity;
     obj.material.transparent = opacity < 1;
     if (!((colors == null ? void 0 : colors.length) || colorMap)) {
-      obj.material.color = new THREE.Color(color);
+      obj.material.color = new THREE2.Color(color);
     }
     obj.material.needsUpdate = true;
-  }, [size, opacity, color, colors == null ? void 0 : colors.length, !!colorMap, THREE]);
+  }, [size, opacity, color, colors == null ? void 0 : colors.length, !!colorMap, THREE2]);
   return null;
 }
 
@@ -2885,7 +2917,8 @@ function useAnimation(opts = {}) {
     tRef.current = t;
   }, [t]);
   const step = React31.useCallback((now) => {
-    const last = lastTsRef.current ?? now;
+    var _a;
+    const last = (_a = lastTsRef.current) != null ? _a : now;
     const rawDt = (now - last) / 1e3;
     lastTsRef.current = now;
     const scaledDt = rawDt * speedRef.current;
@@ -2942,23 +2975,23 @@ function useAnimation(opts = {}) {
 import React32 from "react";
 import { jsx as jsx36 } from "react/jsx-runtime";
 function Group3D({ children, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1] }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const groupRef = React32.useRef(null);
   const [ready, setReady] = React32.useState(false);
   React32.useEffect(() => {
-    if (!THREE || !scene) return;
-    const g = new THREE.Group();
+    if (!THREE2 || !scene) return;
+    const g = new THREE2.Group();
     g.position.set(...position);
     g.rotation.set(...rotation);
     g.scale.set(...scale);
-    (parent ?? scene).add(g);
+    (parent != null ? parent : scene).add(g);
     groupRef.current = g;
     setReady(true);
     return () => {
-      (parent ?? scene).remove(g);
+      (parent != null ? parent : scene).remove(g);
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   React32.useEffect(() => {
     var _a;
     (_a = groupRef.current) == null ? void 0 : _a.position.set(...position);
@@ -2984,9 +3017,10 @@ var easing = {
   easeInOutCubic: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 };
 function getEasing(fn) {
+  var _a;
   if (!fn) return easing.linear;
   if (typeof fn === "function") return fn;
-  return easing[fn] ?? easing.linear;
+  return (_a = easing[fn]) != null ? _a : easing.linear;
 }
 
 // src/useTween.ts
@@ -3013,6 +3047,7 @@ function useTween(options = {}) {
   const [isPlaying, setIsPlaying] = useState(false);
   const step = useCallback(
     (now) => {
+      var _a;
       if (!delayDoneRef.current) {
         if (startTimeRef.current === null) startTimeRef.current = now;
         if (now - startTimeRef.current < delay) {
@@ -3022,7 +3057,7 @@ function useTween(options = {}) {
         delayDoneRef.current = true;
         startTimeRef.current = now;
       }
-      const elapsed = now - (startTimeRef.current ?? now);
+      const elapsed = now - ((_a = startTimeRef.current) != null ? _a : now);
       let raw = Math.min(Math.max(elapsed / duration, 0), 1);
       if (dirRef.current < 0) {
         raw = 1 - raw;
@@ -3059,7 +3094,7 @@ function useTween(options = {}) {
         try {
           const now = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
           step(now);
-        } catch {
+        } catch (e) {
         }
       }, 16);
     }
@@ -3111,16 +3146,17 @@ function Animate2D({ children, type = "transform", from, to, duration = 600, del
   }, [type]);
   const outerRef = React33.useRef(null);
   const applyAt = React33.useCallback((tt) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
     const g = outerRef.current;
     if (!g) return;
-    const f = { ...defaults.from, ...from };
-    const t = { ...defaults.to, ...to };
-    const wx = lerp2(f.x ?? 0, t.x ?? 0, tt);
-    const wy = lerp2(f.y ?? 0, t.y ?? 0, tt);
-    const sc = lerp2(f.scale ?? 1, t.scale ?? 1, tt);
-    const rot = lerp2(f.rotation ?? 0, t.rotation ?? 0, tt);
-    const opFrom = f.opacity ?? 1;
-    const opTo = t.opacity ?? 1;
+    const f = __spreadValues(__spreadValues({}, defaults.from), from);
+    const t = __spreadValues(__spreadValues({}, defaults.to), to);
+    const wx = lerp2((_a = f.x) != null ? _a : 0, (_b = t.x) != null ? _b : 0, tt);
+    const wy = lerp2((_c = f.y) != null ? _c : 0, (_d = t.y) != null ? _d : 0, tt);
+    const sc = lerp2((_e = f.scale) != null ? _e : 1, (_f = t.scale) != null ? _f : 1, tt);
+    const rot = lerp2((_g = f.rotation) != null ? _g : 0, (_h = t.rotation) != null ? _h : 0, tt);
+    const opFrom = (_i = f.opacity) != null ? _i : 1;
+    const opTo = (_j = t.opacity) != null ? _j : 1;
     const op = lerp2(opFrom, opTo, tt);
     const rotDeg = rot * 180 / Math.PI;
     let dx = wx, dy = wy;
@@ -3219,7 +3255,7 @@ function Animate2D({ children, type = "transform", from, to, duration = 600, del
   }
   const clipProps = plot ? { clipPath: `url(#${plot.clipPathId})` } : {};
   const initialOpacity = type === "appear" ? 0 : void 0;
-  return /* @__PURE__ */ jsx37("g", { ref: outerRef, opacity: initialOpacity, ...clipProps, children: worldGroupTransform ? /* @__PURE__ */ jsx37("g", { transform: worldGroupTransform, children }) : children });
+  return /* @__PURE__ */ jsx37("g", __spreadProps(__spreadValues({ ref: outerRef, opacity: initialOpacity }, clipProps), { children: worldGroupTransform ? /* @__PURE__ */ jsx37("g", { transform: worldGroupTransform, children }) : children }));
 }
 
 // src/Animate3D.tsx
@@ -3229,33 +3265,33 @@ function lerp3(a, b, t) {
   return a + (b - a) * t;
 }
 function lerp32(a, b, t, fallback) {
-  const aa = a ?? fallback;
-  const bb = b ?? fallback;
+  const aa = a != null ? a : fallback;
+  const bb = b != null ? b : fallback;
   return [lerp3(aa[0], bb[0], t), lerp3(aa[1], bb[1], t), lerp3(aa[2], bb[2], t)];
 }
 function Animate3D({ children, type = "transform", from, to, duration = 800, delay = 0, easing: easing2 = "easeInOutCubic", autoplay = true, loop = false, yoyo = false, replayKey }) {
-  const { THREE, scene } = useThree();
+  const { THREE: THREE2, scene } = useThree();
   const parent = useThreeParent();
   const easeFn = React34.useMemo(() => typeof easing2 === "function" ? easing2 : getEasing(easing2), [easing2]);
   const groupRef = React34.useRef(null);
   const [ready, setReady] = React34.useState(false);
   const [childrenReadyTick, setChildrenReadyTick] = React34.useState(0);
   React34.useEffect(() => {
-    if (!THREE || !scene) return;
-    const g = new THREE.Group();
+    if (!THREE2 || !scene) return;
+    const g = new THREE2.Group();
     if (type === "appear") g.visible = false;
-    (parent ?? scene).add(g);
+    (parent != null ? parent : scene).add(g);
     groupRef.current = g;
     setReady(true);
     return () => {
       try {
-        (parent ?? scene).remove(g);
-      } catch {
+        (parent != null ? parent : scene).remove(g);
+      } catch (e) {
       }
       groupRef.current = null;
       setReady(false);
     };
-  }, [THREE, scene, parent]);
+  }, [THREE2, scene, parent]);
   const traverseMeshes = React34.useCallback((root, fn) => {
     var _a;
     if (!root) return false;
@@ -3283,12 +3319,12 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
     if (!g) return;
     if (preparedRef.current) return;
     traverseMeshes(g, (mesh, material, idx) => {
-      var _a, _b;
+      var _a, _b, _c;
       if ((_a = mesh.userData) == null ? void 0 : _a.__anim3dPrepared) return;
       let cloned;
       try {
-        cloned = ((_b = material.clone) == null ? void 0 : _b.call(material)) ?? material;
-      } catch {
+        cloned = (_c = (_b = material.clone) == null ? void 0 : _b.call(material)) != null ? _c : material;
+      } catch (e) {
         cloned = material;
       }
       const orig = material;
@@ -3300,7 +3336,7 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
         cloned.transparent = true;
         cloned.depthWrite = false;
         if (typeof cloned.opacity === "number") cloned.opacity = initialOpacity;
-      } catch {
+      } catch (e) {
       }
       mesh.userData = mesh.userData || {};
       mesh.userData.__anim3dPrepared = { orig, originalTransparent, originalDepthWrite, idx };
@@ -3319,29 +3355,30 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
         if (mesh.material && info.orig) {
           mesh.material = info.orig;
         }
-      } catch {
+      } catch (e) {
       }
       try {
         if (material) {
           material.transparent = info.originalTransparent;
           material.depthWrite = info.originalDepthWrite;
         }
-      } catch {
+      } catch (e) {
       }
       delete mesh.userData.__anim3dPrepared;
     });
     preparedRef.current = false;
   }, [traverseMeshes]);
   const applyAt = React34.useCallback((tt) => {
+    var _a, _b, _c, _d, _e, _f;
     const g = groupRef.current;
     if (!g) return;
     currentProgressRef.current = tt;
-    const fpos = (from == null ? void 0 : from.position) ?? [0, 0, 0];
-    const tpos = (to == null ? void 0 : to.position) ?? [0, 0, 0];
-    const frot = (from == null ? void 0 : from.rotation) ?? [0, 0, 0];
-    const trot = (to == null ? void 0 : to.rotation) ?? [0, 0, 0];
-    const fsca = (from == null ? void 0 : from.scale) ?? [1, 1, 1];
-    const tsca = (to == null ? void 0 : to.scale) ?? [1, 1, 1];
+    const fpos = (_a = from == null ? void 0 : from.position) != null ? _a : [0, 0, 0];
+    const tpos = (_b = to == null ? void 0 : to.position) != null ? _b : [0, 0, 0];
+    const frot = (_c = from == null ? void 0 : from.rotation) != null ? _c : [0, 0, 0];
+    const trot = (_d = to == null ? void 0 : to.rotation) != null ? _d : [0, 0, 0];
+    const fsca = (_e = from == null ? void 0 : from.scale) != null ? _e : [1, 1, 1];
+    const tsca = (_f = to == null ? void 0 : to.scale) != null ? _f : [1, 1, 1];
     const p = lerp32(fpos, tpos, tt, [0, 0, 0]);
     const r = lerp32(frot, trot, tt, [0, 0, 0]);
     const s = lerp32(fsca, tsca, tt, [1, 1, 1]);
@@ -3353,7 +3390,7 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
       traverseMeshes(g, (_mesh, material) => {
         try {
           if (typeof material.opacity === "number") material.opacity = op;
-        } catch {
+        } catch (e) {
         }
       });
     }
@@ -3381,7 +3418,7 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
     d.id = window.setInterval(() => {
       const tnow = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
       const elapsed = tnow - d.startAt;
-      const eff = elapsed - (delay ?? 0);
+      const eff = elapsed - (delay != null ? delay : 0);
       if (eff < 0) {
         applyAt(0);
         return;
@@ -3429,12 +3466,12 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
           const root = groupRef.current;
           if (!root) return;
           traverseMeshes(root, (mesh, material, idx) => {
-            var _a, _b;
+            var _a, _b, _c;
             if ((_a = mesh.userData) == null ? void 0 : _a.__anim3dPrepared) return;
             let cloned;
             try {
-              cloned = ((_b = material.clone) == null ? void 0 : _b.call(material)) ?? material;
-            } catch {
+              cloned = (_c = (_b = material.clone) == null ? void 0 : _b.call(material)) != null ? _c : material;
+            } catch (e) {
               cloned = material;
             }
             const orig = material;
@@ -3447,7 +3484,7 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
               cloned.depthWrite = false;
               cloned.opacity = currentProgressRef.current;
               cloned.needsUpdate = true;
-            } catch {
+            } catch (e) {
             }
             mesh.userData = mesh.userData || {};
             mesh.userData.__anim3dPrepared = { orig, originalTransparent, originalDepthWrite, idx };
@@ -3517,7 +3554,7 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
     return () => {
       try {
         stop();
-      } catch {
+      } catch (e) {
       }
       if (rafRevealRef.current != null) cancelAnimationFrame(rafRevealRef.current);
       if (pollTimerRef.current != null) clearTimeout(pollTimerRef.current);
@@ -3528,7 +3565,7 @@ function Animate3D({ children, type = "transform", from, to, duration = 800, del
       appearRunningRef.current = false;
       try {
         finalizeMaterials();
-      } catch {
+      } catch (e) {
       }
     };
   }, [finalizeMaterials, stop]);

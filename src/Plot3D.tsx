@@ -1,5 +1,8 @@
 import React from "react";
 import { ThreeContext } from "./threeContext";
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
 
 export type Plot3DProps = {
   width: number;
@@ -40,14 +43,7 @@ export function Plot3D({
 
   // Lazy-load THREE from CDN to avoid hard dependency for the library
   React.useEffect(() => {
-    let mounted = true;
-    (async () => {
       try {
-        // @ts-ignore - ESM CDN import
-  const THREE: any = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
-  // Import OrbitControls from the same version; relies on a page-level import map mapping "three" to the URL above
-  const { OrbitControls }: any = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js');
-        if (!mounted) return;
   setThree({ ...THREE, OrbitControls });
 
   // Init scene
@@ -111,9 +107,7 @@ export function Plot3D({
       } catch (err) {
         console.error("Failed to load THREE:", err);
       }
-    })();
     return () => {
-      mounted = false;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       try { controlsRef.current?.dispose?.(); } catch {}
       try { renderer3d?.dispose?.(); } catch {}

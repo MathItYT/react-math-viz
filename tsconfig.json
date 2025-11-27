@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "jsx": "react-jsx",
+        "target": "es6",
         "allowSyntheticDefaultImports": true,
         "module": "preserve",
         "moduleResolution": "bundler"

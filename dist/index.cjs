@@ -2564,7 +2564,8 @@ function Label3D({ position, children, align = "left", vAlign = "top", dx = 0, d
         const ax = align === "center" ? -50 : align === "right" ? -100 : 0;
         const ay = vAlign === "middle" ? -50 : vAlign === "bottom" ? -100 : 0;
         el.style.transform = `translate(${Math.round(x + dx)}px, ${Math.round(y + dy)}px) translate(${ax}%, ${ay}%)`;
-        el.style.display = v.z < 1 ? "block" : "none";
+        const isVisible = Math.abs(v.z) < 1 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1;
+        el.style.display = isVisible ? "block" : "none";
       } catch (e) {
       }
       requestAnimationFrame(update);

@@ -43,7 +43,7 @@ export function Axes2D({
   renderYLabel,
   labelOffset = { x: 12, y: 8 },
 }: Axes2DProps) {
-  const { xRange, yRange, worldToScreen, clipPathId, innerWidth, innerHeight, margin } = usePlot();
+  const { width, height, xRange, yRange, worldToScreen, clipPathId, innerWidth, innerHeight, margin } = usePlot();
 
   let xTickVals: number[] = [];
   let yTickVals: number[] = [];
@@ -153,7 +153,8 @@ export function Axes2D({
   const xLabelAbove = zeroYInRange ? false : (labelYForX === yRange[1]);
 
   const labels = (
-    <foreignObject x={margin.left} y={margin.top} width={innerWidth} height={innerHeight}>
+    // 2. Cambia x, y, width, height para cubrir todo el SVG
+    <foreignObject x={0} y={0} width={width} height={height} style={{ overflow: 'visible' }}>
       <div style={{ position: 'relative', width: '100%', height: '100%', pointerEvents: 'none', fontFamily: 'system-ui, Segoe UI, Roboto, sans-serif', fontSize: 12, color: '#222', userSelect: 'none' }}>
         {renderXLabel && xTickVals.map((x) => {
           const node = renderXLabel(x);
@@ -162,7 +163,8 @@ export function Axes2D({
           const topAbs = xLabelAbove ? p.y - baseXLabelOffset : p.y + baseXLabelOffset;
           const transform = xLabelAbove ? 'translate(-50%, -100%)' : 'translate(-50%, 0)';
           return (
-            <div key={`xl-${x}`} style={{ position: 'absolute', left: p.x - margin.left, top: topAbs - margin.top, transform, pointerEvents: 'auto' }}>{node}</div>
+            // 3. Elimina "- margin.left" y "- margin.top" aquí
+            <div key={`xl-${x}`} style={{ position: 'absolute', left: p.x, top: topAbs, transform, pointerEvents: 'auto' }}>{node}</div>
           );
         })}
         {renderYLabel && yTickVals.map((y) => {
@@ -175,7 +177,8 @@ export function Axes2D({
           const transform = placeLeft ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
           const textAlign = placeLeft ? 'right' as const : 'left' as const;
           return (
-            <div key={`yl-${y}`} style={{ position: 'absolute', left: leftAbs - margin.left, top: p.y - margin.top, transform, textAlign, pointerEvents: 'auto' }}>{node}</div>
+            // 3. Elimina "- margin.left" y "- margin.top" aquí también
+            <div key={`yl-${y}`} style={{ position: 'absolute', left: leftAbs, top: p.y, transform, textAlign, pointerEvents: 'auto' }}>{node}</div>
           );
         })}
       </div>

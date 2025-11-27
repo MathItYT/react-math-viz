@@ -425,7 +425,7 @@ function Axes2D({
   renderYLabel,
   labelOffset = { x: 12, y: 8 }
 }) {
-  const { xRange, yRange, worldToScreen, clipPathId, innerWidth, innerHeight, margin } = usePlot();
+  const { width, height, xRange, yRange, worldToScreen, clipPathId, innerWidth, innerHeight, margin } = usePlot();
   let xTickVals = [];
   let yTickVals = [];
   const inferDelta = (vals) => {
@@ -513,27 +513,36 @@ function Axes2D({
   const labelXForY = zeroXInRange ? 0 : Math.abs(xRange[0]) <= Math.abs(xRange[1]) ? xRange[0] : xRange[1];
   const baseXLabelOffset = labelOffset.y ?? 8;
   const xLabelAbove = zeroYInRange ? false : labelYForX === yRange[1];
-  const labels = /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("foreignObject", { x: margin.left, y: margin.top, width: innerWidth, height: innerHeight, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222", userSelect: "none" }, children: [
-    renderXLabel && xTickVals.map((x) => {
-      const node = renderXLabel(x);
-      if (node == null) return null;
-      const p = worldToScreen(x, labelYForX);
-      const topAbs = xLabelAbove ? p.y - baseXLabelOffset : p.y + baseXLabelOffset;
-      const transform = xLabelAbove ? "translate(-50%, -100%)" : "translate(-50%, 0)";
-      return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: p.x - margin.left, top: topAbs - margin.top, transform, pointerEvents: "auto" }, children: node }, `xl-${x}`);
-    }),
-    renderYLabel && yTickVals.map((y) => {
-      const node = renderYLabel(y);
-      if (node == null) return null;
-      const p = worldToScreen(labelXForY, y);
-      const placeLeft = zeroXInRange ? true : labelXForY === xRange[0];
-      const baseX = labelOffset.x ?? 12;
-      const leftAbs = p.x + (placeLeft ? -baseX : baseX);
-      const transform = placeLeft ? "translate(-100%, -50%)" : "translate(0, -50%)";
-      const textAlign = placeLeft ? "right" : "left";
-      return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: leftAbs - margin.left, top: p.y - margin.top, transform, textAlign, pointerEvents: "auto" }, children: node }, `yl-${y}`);
-    })
-  ] }) });
+  const labels = (
+    // 2. Cambia x, y, width, height para cubrir todo el SVG
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("foreignObject", { x: 0, y: 0, width, height, style: { overflow: "visible" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "relative", width: "100%", height: "100%", pointerEvents: "none", fontFamily: "system-ui, Segoe UI, Roboto, sans-serif", fontSize: 12, color: "#222", userSelect: "none" }, children: [
+      renderXLabel && xTickVals.map((x) => {
+        const node = renderXLabel(x);
+        if (node == null) return null;
+        const p = worldToScreen(x, labelYForX);
+        const topAbs = xLabelAbove ? p.y - baseXLabelOffset : p.y + baseXLabelOffset;
+        const transform = xLabelAbove ? "translate(-50%, -100%)" : "translate(-50%, 0)";
+        return (
+          // 3. Elimina "- margin.left" y "- margin.top" aquí
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: p.x, top: topAbs, transform, pointerEvents: "auto" }, children: node }, `xl-${x}`)
+        );
+      }),
+      renderYLabel && yTickVals.map((y) => {
+        const node = renderYLabel(y);
+        if (node == null) return null;
+        const p = worldToScreen(labelXForY, y);
+        const placeLeft = zeroXInRange ? true : labelXForY === xRange[0];
+        const baseX = labelOffset.x ?? 12;
+        const leftAbs = p.x + (placeLeft ? -baseX : baseX);
+        const transform = placeLeft ? "translate(-100%, -50%)" : "translate(0, -50%)";
+        const textAlign = placeLeft ? "right" : "left";
+        return (
+          // 3. Elimina "- margin.left" y "- margin.top" aquí también
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: leftAbs, top: p.y, transform, textAlign, pointerEvents: "auto" }, children: node }, `yl-${y}`)
+        );
+      })
+    ] }) })
+  );
   return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("g", { clipPath: `url(#${clipPathId})`, children: [
     minorGrid && (xSubdivisions > 0 || ySubdivisions > 0) && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("g", { stroke: minorGridCfg.stroke, strokeWidth: minorGridCfg.strokeWidth, opacity: minorGridCfg.opacity, shapeRendering: "crispEdges", vectorEffect: "non-scaling-stroke", children: [
       xSubEff > 0 && gridXMajorFinal.length > 1 && gridXMajorFinal.flatMap((xv, i) => {
